@@ -4,10 +4,11 @@ Ship the money loop first; add video (the expensive, slow feature) only after
 the funnel converts. Each phase ends with something a real user can touch.
 
 ## Phase 0 — Foundations (Week 1)
-- [ ] Next.js 15 + TypeScript + Tailwind + shadcn/ui scaffold; deploy to Vercel day one
-- [ ] Neon Postgres + Prisma; run the schema in `prisma/schema.prisma`
-- [ ] Clerk auth + webhook → `User` sync
-- [ ] PostHog snippet, Resend account, Stripe account (test mode)
+- [x] Next.js 15 + TypeScript + Tailwind + shadcn/ui scaffold (Prisma 7 driver-adapter setup; shadcn tokens/`cn()` wired — add components with `npx shadcn add`)
+- [x] Prisma schema + generated client (`npm run db:push` once `DATABASE_URL` points at a real Neon database)
+- [x] Clerk auth middleware + `/api/webhooks/clerk` → `User` sync (fill Clerk keys in `.env`)
+- [x] PostHog provider (no-ops until `NEXT_PUBLIC_POSTHOG_KEY` is set)
+- [ ] **Account setup (human step):** create Neon, Clerk, Stripe (test mode), PostHog, and Resend accounts; copy keys into `.env` per `.env.example`; connect the repo to Vercel
 
 ## Phase 1 — Metric Model + Pro Roster (Weeks 1–2)
 - [ ] Finalize the 12 metrics (`src/lib/metrics.ts`) — resist adding more

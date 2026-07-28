@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     ],
   });
   const explanationText = explanation.content
-    .filter((b) => b.type === "text")
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
     .map((b) => b.text)
     .join("\n");
 
