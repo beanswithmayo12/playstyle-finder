@@ -20,16 +20,18 @@ datasource db {
 // ─────────────────────────────── Users ───────────────────────────────
 
 model User {
-  id          String   @id @default(cuid())
-  clerkId     String   @unique // synced from Clerk webhook
-  email       String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  clerkId          String   @unique // synced from Clerk webhook
+  email            String   @unique
+  stripeCustomerId String?  @unique // created lazily on first checkout
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  profile     AthleteProfile?
-  assessments Assessment[]
-  purchases   Purchase[]
-  planAccess  PlanAccess[]
+  profile      AthleteProfile?
+  assessments  Assessment[]
+  purchases    Purchase[]
+  planAccess   PlanAccess[]
+  subscription Subscription?
 }
 
 model AthleteProfile {
@@ -246,6 +248,23 @@ model PlanAccess {
   expiresAt  DateTime? // null = lifetime
 
   @@unique([userId, planId])
+}
+
+// Membership tier (Stripe Billing). One active subscription per user;
+// status mirrors Stripe and is updated ONLY from webhook events.
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
+
+  stripeSubscriptionId String   @unique
+  stripePriceId        String
+  status               String // Stripe status verbatim: active, past_due, canceled, ...
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 // Webhook idempotency ledger — process each Stripe event exactly once.
