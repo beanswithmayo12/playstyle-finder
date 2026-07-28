@@ -40,28 +40,37 @@ Only pros in the athlete's position group or adjacent groups
 (Musiala drifts wide) but never a center back. Adjacent-group pros carry a
 small fixed penalty (−0.06) so they only win on a clearly better style fit.
 
-### 2. Z-score standardization
-Each metric is standardized across the candidate pool:
+### 2. Per-vector standardization (the level-invariance trick)
+Each vector — athlete and pro alike — is centered and scaled by **its own**
+weighted mean and standard deviation:
 
 ```
-z_i = (x_i − μ_i) / σ_i
+ẑ_i = (x_i − μ_self) / σ_self
 ```
 
-Without this, low-variance metrics (every pro has elite endurance) contribute
-nothing and high-variance ones dominate. After standardization, "unusually
-high dribble density *for this position*" is what registers — which is exactly
-what playstyle means.
+leaving only the profile's internal shape. A uniform level scaling (an
+amateur at 60% of a pro's numbers) produces an *identical* standardized
+vector, so the level gap vanishes by construction.
+
+> ⚠️ Lesson from tuning: standardizing against the **candidate pool**
+> (classic z-scores) fails here. The amateur sits below the pro pool on
+> every metric, so their z-vector flattens toward "uniformly negative" and
+> the style signal washes out — in testing, every amateurized center back
+> matched Trent Alexander-Arnold. Self-standardization fixed it:
+> 34/36 synthetic amateurs match their source pro at rank 1, 36/36 top-2.
 
 ### 3. Weighted cosine similarity (the style term)
 
 ```
-cos_w(a, b) = Σ wᵢ·aᵢ·bᵢ / (√(Σ wᵢ·aᵢ²) · √(Σ wᵢ·bᵢ²))
+cos_w(â, b̂) = Σ wᵢ·âᵢ·b̂ᵢ / (√(Σ wᵢ·âᵢ²) · √(Σ wᵢ·b̂ᵢ²))
 ```
 
-`w` comes from `POSITION_WEIGHTS`: for a winger, dribbleDensity and
-explosiveness weigh 3×; for a DM, tempoControl and scanning do. The same
-athlete vector produces different rankings depending on position — correct,
-because what defines "similar style" is position-relative.
+On self-standardized vectors this is a weighted Pearson correlation across
+the 12 metrics. `w` comes from `POSITION_WEIGHTS`: for a winger,
+dribbleDensity and explosiveness weigh 3×; for a DM, tempoControl and
+scanning do. The same athlete vector produces different rankings depending
+on position — correct, because what defines "similar style" is
+position-relative.
 
 ### 4. Magnitude blend (the intensity term)
 A pure-shape match has a failure mode: a player who does everything gently

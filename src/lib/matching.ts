@@ -1,9 +1,16 @@
 /**
  * The player-matching engine.
  *
- * Pipeline: position gating → z-score standardization → weighted cosine
- * similarity (style shape) blended with a magnitude term (level-adjusted
- * intensity). See docs/03-matching-engine.md for the math and rationale.
+ * Pipeline: position gating → per-vector standardization → weighted Pearson
+ * correlation (style shape) blended with a magnitude term (intensity).
+ *
+ * Each vector is standardized against ITS OWN weighted mean/sd, not the
+ * candidate pool's. That makes the shape term invariant to uniform level
+ * scaling — an amateur whose numbers are all 60% of De Bruyne's still has
+ * De Bruyne's exact standardized shape. (Pool z-scoring fails here: the
+ * amateur sits below the pro pool on every metric, so their z-vector
+ * flattens to "uniformly negative" and the style signal washes out.)
+ * See docs/03-matching-engine.md for the math and rationale.
  */
 
 import {
@@ -51,16 +58,15 @@ export function rankMatches(
   ]);
   const candidates = pros.filter((p) => allowed.has(p.positionGroup));
 
-  // 2. Standardize each metric across the candidate pool (z-scores), so a
-  //    metric where everyone scores ~90 (e.g. pro endurance) can't dominate.
-  const stats = poolStats(candidates.map((p) => p.metrics).concat([athleteMetrics]));
-  const a = standardize(athleteMetrics, stats);
-
-  // 3. Position-specific weights, normalized to sum to 1.
+  // 2. Position-specific weights, normalized to sum to 1.
   const weights = normalizeWeights(POSITION_WEIGHTS[athletePosition]);
 
+  // 3. Standardize the athlete vector against its own weighted mean/sd, so
+  //    only the internal SHAPE of the profile remains (level-invariant).
+  const a = selfStandardize(athleteMetrics, weights);
+
   const scored = candidates.map((pro) => {
-    const p = standardize(pro.metrics, stats);
+    const p = selfStandardize(pro.metrics, weights);
 
     const cosine = weightedCosine(a, p, weights);
     const magnitude = magnitudeSimilarity(athleteMetrics, pro.metrics, weights);
@@ -83,22 +89,16 @@ export function rankMatches(
 
 // ─────────────────────────── math helpers ───────────────────────────
 
-type PoolStats = Record<string, { mean: number; sd: number }>;
-
-function poolStats(vectors: MetricVector[]): PoolStats {
-  const stats: PoolStats = {};
-  for (const k of METRIC_KEYS) {
-    const vals = vectors.map((v) => v[k]);
-    const mean = vals.reduce((s, x) => s + x, 0) / vals.length;
-    const sd =
-      Math.sqrt(vals.reduce((s, x) => s + (x - mean) ** 2, 0) / vals.length) || 1;
-    stats[k] = { mean, sd };
-  }
-  return stats;
-}
-
-function standardize(v: MetricVector, stats: PoolStats): number[] {
-  return METRIC_KEYS.map((k) => (v[k] - stats[k].mean) / stats[k].sd);
+/**
+ * Center and scale a vector by its OWN weighted mean/sd, leaving only its
+ * internal shape. Uniform scaling of the input (an amateur at 60% of a
+ * pro's level) produces an identical standardized vector.
+ */
+function selfStandardize(v: MetricVector, w: number[]): number[] {
+  const vals = METRIC_KEYS.map((k) => v[k]);
+  const mean = vals.reduce((s, x, i) => s + w[i] * x, 0);
+  const sd = Math.sqrt(vals.reduce((s, x, i) => s + w[i] * (x - mean) ** 2, 0)) || 1;
+  return vals.map((x) => (x - mean) / sd);
 }
 
 function normalizeWeights(w: MetricVector): number[] {

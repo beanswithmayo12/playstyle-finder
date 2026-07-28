@@ -11,12 +11,15 @@ the funnel converts. Each phase ends with something a real user can touch.
 - [ ] **Account setup (human step):** create Neon, Clerk, Stripe (test mode), PostHog, and Resend accounts; copy keys into `.env` per `.env.example`; connect the repo to Vercel
 
 ## Phase 1 — Metric Model + Pro Roster (Weeks 1–2)
-- [ ] Finalize the 12 metrics (`src/lib/metrics.ts`) — resist adding more
-- [ ] Author 30–40 pro profiles covering the position × archetype grid
-      (spreadsheet → seed script); write `styleSummary` + 3 `studyClips` each
-- [ ] Implement + unit-test the matcher (`src/lib/matching.ts`)
-- [ ] Tuning harness: ~50 synthetic athlete vectors, eyeball the matches,
-      tune weights until zero embarrassing results
+- [x] Finalize the 12 metrics (`src/lib/metrics.ts`) — resist adding more
+- [x] Author 36 pro profiles covering the position × archetype grid
+      (`src/data/pros.ts`; seed with `npx prisma db seed`). Study clips use
+      `youtubeQuery` search strings — swap in curated video ids editorially
+- [x] Implement + unit-test the matcher (`npm test`, 12 tests) — tuning
+      surfaced a real flaw (pool z-scoring washed out amateur style signal);
+      switched to per-vector standardization / weighted Pearson correlation
+- [x] Tuning harness (`npm run tune:matcher`): 36 synthetic amateurs,
+      34/36 self-match at rank 1, 36/36 top-2, zero embarrassing rows
 
 ## Phase 2 — Questionnaire Funnel (Weeks 2–4) → **first end-to-end demo**
 - [ ] 14-question quiz UI (one question/screen, position branching)
