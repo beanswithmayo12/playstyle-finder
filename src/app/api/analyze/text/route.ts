@@ -1,39 +1,80 @@
 /**
  * POST /api/analyze/text — questionnaire analysis, synchronous.
  *
- * Flow: validate → Claude scores metrics → match against pro roster →
- * Claude writes explanation → persist Assessment + MatchResult → return match.
- * (Video analysis follows the same shape but runs inside an Inngest job;
- * see docs/01-architecture.md.)
+ * Body: QuizAnswers (src/data/quiz.ts) — profile fields + tactical answers.
+ * Flow: upsert user/profile → Claude scores metrics → match against pro
+ * roster → Claude writes explanation → persist Assessment + MatchResult.
+ * The user row is upserted from the Clerk session here so the funnel never
+ * depends on webhook delivery timing.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/db";
 import { isCompleteVector, type PositionGroup } from "@/lib/metrics";
 import { rankMatches, displayMatchPercent, type ProCandidate } from "@/lib/matching";
 import { MATCH_EXPLAINER_SYSTEM, PROMPT_VERSION } from "@/lib/prompts";
 import { analyzeQuestionnaire } from "@/lib/ai/questionnaire";
+import type { QuizAnswers } from "@/data/quiz";
+import type { Foot, PlayingLevel } from "@/generated/prisma/enums";
 
 const anthropic = new Anthropic();
 
-export async function POST(req: NextRequest) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+const POSITIONS = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
+const FEET = ["LEFT", "RIGHT", "BOTH"];
+const LEVELS = ["YOUTH", "HIGH_SCHOOL", "ACADEMY", "COLLEGE", "SEMI_PRO", "ADULT_AMATEUR"];
 
-  const user = await prisma.user.findUnique({
-    where: { clerkId },
-    include: { profile: true },
-  });
-  if (!user?.profile) {
-    return NextResponse.json({ error: "complete your profile first" }, { status: 400 });
+export async function POST(req: NextRequest) {
+  const clerkUser = await currentUser();
+  if (!clerkUser) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const body = (await req.json()) as QuizAnswers;
+  if (
+    !POSITIONS.includes(body.positionGroup) ||
+    !FEET.includes(body.preferredFoot) ||
+    !LEVELS.includes(body.playingLevel) ||
+    !Array.isArray(body.tactical) ||
+    body.tactical.length === 0
+  ) {
+    return NextResponse.json({ error: "invalid quiz payload" }, { status: 400 });
   }
 
-  const rawAnswers = await req.json();
+  const email = clerkUser.primaryEmailAddress?.emailAddress;
+  if (!email) return NextResponse.json({ error: "no email on account" }, { status: 400 });
+
+  const displayName =
+    clerkUser.firstName ?? clerkUser.username ?? email.split("@")[0];
+
+  const user = await prisma.user.upsert({
+    where: { clerkId: clerkUser.id },
+    create: { clerkId: clerkUser.id, email },
+    update: { email },
+  });
+
+  await prisma.athleteProfile.upsert({
+    where: { userId: user.id },
+    create: {
+      userId: user.id,
+      displayName,
+      positionGroup: body.positionGroup as PositionGroup,
+      preferredFoot: body.preferredFoot as Foot,
+      playingLevel: body.playingLevel as PlayingLevel,
+    },
+    update: {
+      positionGroup: body.positionGroup as PositionGroup,
+      preferredFoot: body.preferredFoot as Foot,
+      playingLevel: body.playingLevel as PlayingLevel,
+    },
+  });
 
   // 1. Score the questionnaire into the canonical metric vector.
-  const scored = await analyzeQuestionnaire(rawAnswers);
+  const scored = await analyzeQuestionnaire({
+    position: body.positionGroup,
+    preferredFoot: body.preferredFoot,
+    playingLevel: body.playingLevel,
+    answers: body.tactical.map((t) => ({ question: t.question, answer: t.answer })),
+  });
   if (!isCompleteVector(scored.metrics)) {
     return NextResponse.json({ error: "analysis failed, please retry" }, { status: 502 });
   }
@@ -48,11 +89,10 @@ export async function POST(req: NextRequest) {
     metrics: p.metrics as ProCandidate["metrics"],
   }));
 
-  const ranked = rankMatches(
-    scored.metrics,
-    user.profile.positionGroup as PositionGroup,
-    candidates,
-  );
+  const ranked = rankMatches(scored.metrics, body.positionGroup as PositionGroup, candidates);
+  if (ranked.length === 0) {
+    return NextResponse.json({ error: "no candidates — is the roster seeded?" }, { status: 500 });
+  }
   const best = ranked[0];
   const bestPro = pros.find((p) => p.id === best.pro.id)!;
 
@@ -83,13 +123,13 @@ export async function POST(req: NextRequest) {
     .map((b) => b.text)
     .join("\n");
 
-  // 4. Persist assessment + match in one transaction.
+  // 4. Persist assessment + match.
   const assessment = await prisma.assessment.create({
     data: {
       userId: user.id,
       inputType: "QUESTIONNAIRE",
       status: "COMPLETE",
-      rawAnswers,
+      rawAnswers: body as never,
       metrics: scored.metrics,
       confidence: scored.confidence,
       modelInfo: { model: "claude-sonnet-5", promptVersion: PROMPT_VERSION },

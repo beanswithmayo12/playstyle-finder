@@ -22,11 +22,16 @@ the funnel converts. Each phase ends with something a real user can touch.
       34/36 self-match at rank 1, 36/36 top-2, zero embarrassing rows
 
 ## Phase 2 — Questionnaire Funnel (Weeks 2–4) → **first end-to-end demo**
-- [ ] 14-question quiz UI (one question/screen, position branching)
-- [ ] Email capture between submit and reveal
-- [ ] `/api/analyze/text` (Claude scoring → match → explanation)
-- [ ] Reveal sequence + Study Dashboard (radar chart, why, study clips, gaps)
-- [ ] Shareable match card (`@vercel/og` image generation)
+- [x] 14-screen quiz UI at `/quiz` (one question/screen, GK phrasing variants,
+      sessionStorage persistence, config in `src/data/quiz.ts`)
+- [x] Capture-at-peak-curiosity: `/quiz/reveal` gates the result behind Clerk
+      sign-up ("create your free account to see your match"), then runs analysis
+- [x] `/api/analyze/text` upserts user + profile from the quiz payload
+      (no webhook dependency), scores via Claude, matches, explains
+- [x] Reveal + Study Dashboard at `/dashboard`: radar comparison (recharts),
+      scouting report, study-clip cards, runners-up, gap section → `/plans` CTA
+- [x] Share loop: public share page `/m/[matchId]` + OG card `/api/og/[matchId]`
+      (native share / clipboard from the dashboard)
 
 ## Phase 3 — Payments + First Programs (Weeks 4–6) → **first dollar**
 - [ ] Author 3 flagship 8-week programs for your 3 most-matched pros

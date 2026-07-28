@@ -29,6 +29,7 @@
     "prisma": "^7.9.1",
     "react": "~19.1.4",
     "react-dom": "~19.1.4",
+    "recharts": "^3.10.1",
     "stripe": "^22.3.2",
     "svix": "^1.99.1",
     "tailwind-merge": "^3.6.0",
