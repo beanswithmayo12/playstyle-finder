@@ -34,12 +34,19 @@ the funnel converts. Each phase ends with something a real user can touch.
       (native share / clipboard from the dashboard)
 
 ## Phase 3 — Payments + First Programs (Weeks 4–6) → **first dollar**
-- [ ] Author 3 flagship 8-week programs for your 3 most-matched pros
-      (buy out a coach's time for content; you own the IP) — `PlanSession` rows
-- [ ] Sales page with personalized gap section; Week 1 unlocked as preview
-- [ ] Stripe Checkout + webhook fulfillment (`/api/stripe/webhook`) + order bump
-- [ ] Program delivery UI: week/day navigator, session checklists, drill videos
-- [ ] Abandoned-checkout emails; money-back guarantee flow
+- [x] 3 flagship 8-week programs (De Bruyne / Vinícius / Rodri): drill library
+      (`src/data/drills.ts`, 36 drills) + program generator with phase-based
+      progression (`src/data/programs.ts`) → 32 seeded sessions per program.
+      Review/extend content with a licensed coach before scaling paid volume
+- [x] `/plans` sales page: personalized gap bullets from `metricDeltas`,
+      Week 1 fully visible as proof-of-quality, guarantee copy
+- [x] Stripe Checkout + webhook fulfillment; `scripts/sync-stripe-prices.ts`
+      auto-creates Products/Prices and replaces placeholder ids
+      (order bump: configure in the Stripe Checkout dashboard)
+- [x] `/program/[planId]` delivery UI: week navigator, session checklists with
+      optimistic completion tracking (`SessionCompletion`), drill cues + video
+      references, post-payment "unlocking" holding screen
+- [ ] Abandoned-checkout emails via Resend (moved to Phase 5 email batch)
 
 **→ LAUNCH here.** Questionnaire-only is a complete product. Validate
 conversion before building video.

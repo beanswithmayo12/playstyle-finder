@@ -32,6 +32,7 @@ model User {
   purchases    Purchase[]
   planAccess   PlanAccess[]
   subscription Subscription?
+  completions  SessionCompletion[]
 }
 
 model AthleteProfile {
@@ -167,6 +168,7 @@ model MatchResult {
 
 model TrainingPlan {
   id           String     @id @default(cuid())
+  slug         String     @unique // "de-bruyne-blueprint" — stable seed key
   proPlayerId  String
   proPlayer    ProPlayer  @relation(fields: [proPlayerId], references: [id])
 
@@ -174,7 +176,7 @@ model TrainingPlan {
   description  String     @db.Text
   weeks        Int        @default(8)
   priceCents   Int // e.g. 4900
-  stripePriceId String    @unique
+  stripePriceId String    @unique // "placeholder_<slug>" until scripts/sync-stripe-prices.ts runs
   published    Boolean    @default(false)
 
   sessions     PlanSession[]
@@ -192,9 +194,23 @@ model PlanSession {
   day       Int // 1–7
   title     String // "Explosive Acceleration: Resisted Sprints"
   focus     SessionFocus
-  content   Json // ordered blocks: [{ type, name, sets, reps, videoUrl, cues }]
+  content   Json // ordered blocks: [{ name, focus, sets, reps, cues, videoQuery }]
+
+  completions SessionCompletion[]
 
   @@unique([planId, week, day])
+}
+
+// Session check-offs — powers progress bars and week-4/8 retention emails.
+model SessionCompletion {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId   String
+  session     PlanSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  completedAt DateTime    @default(now())
+
+  @@unique([userId, sessionId])
 }
 
 enum SessionFocus {

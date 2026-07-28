@@ -53,6 +53,12 @@ export async function POST(req: NextRequest) {
 
   const plan = await prisma.trainingPlan.findUnique({ where: { id: body.planId } });
   if (!plan?.published) return NextResponse.json({ error: "plan not found" }, { status: 404 });
+  if (plan.stripePriceId.startsWith("placeholder_")) {
+    return NextResponse.json(
+      { error: "plan not synced to Stripe — run scripts/sync-stripe-prices.ts" },
+      { status: 500 },
+    );
+  }
 
   const alreadyOwned = await prisma.planAccess.findUnique({
     where: { userId_planId: { userId: user.id, planId: plan.id } },
