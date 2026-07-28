@@ -1,0 +1,256 @@
+// Playstyle Finder — PostgreSQL schema (Prisma)
+//
+// Design notes:
+// - Metric vectors are stored as Json for flexibility (the 12-key shape is
+//   enforced in application code via src/lib/metrics.ts). When the pro roster
+//   grows, add a pgvector column via raw migration for ANN search.
+// - Purchases are driven ONLY by Stripe webhooks, never by client redirects.
+// - Assessments are append-only: re-taking the quiz creates a new row, so you
+//   can show athletes their progression over time (a retention feature).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── Users ───────────────────────────────
+
+model User {
+  id          String   @id @default(cuid())
+  clerkId     String   @unique // synced from Clerk webhook
+  email       String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  profile     AthleteProfile?
+  assessments Assessment[]
+  purchases   Purchase[]
+  planAccess  PlanAccess[]
+}
+
+model AthleteProfile {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  displayName   String
+  birthYear     Int?
+  positionGroup PositionGroup
+  preferredFoot Foot          @default(RIGHT)
+  heightCm      Int?
+  playingLevel  PlayingLevel  @default(HIGH_SCHOOL)
+
+  updatedAt     DateTime      @updatedAt
+}
+
+enum PositionGroup {
+  GK
+  CB
+  FB // fullback / wingback
+  DM
+  CM
+  AM
+  W // winger
+  ST
+}
+
+enum Foot {
+  LEFT
+  RIGHT
+  BOTH
+}
+
+enum PlayingLevel {
+  YOUTH
+  HIGH_SCHOOL
+  ACADEMY
+  COLLEGE
+  SEMI_PRO
+  ADULT_AMATEUR
+}
+
+// ──────────────────────────── Assessments ────────────────────────────
+
+model Assessment {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  inputType   AssessmentInput
+  status      AssessmentStatus @default(PENDING)
+
+  // Raw inputs (kept for reprocessing when prompts/models improve)
+  rawAnswers  Json? // questionnaire answers
+  videoKey    String? // R2 object key for uploaded video
+  videoMeta   Json? // duration, jersey color/number, resolution
+
+  // AI outputs
+  metrics     Json? // MetricVector (12 keys, 0–100)
+  confidence  Json? // MetricConfidence (0–1 per key)
+  eventLog    Json? // observed events from video frames (audit trail)
+  modelInfo   Json? // { model, promptVersion } — enables safe reprocessing
+
+  createdAt   DateTime         @default(now())
+  completedAt DateTime?
+
+  match       MatchResult?
+
+  @@index([userId, createdAt])
+}
+
+enum AssessmentInput {
+  QUESTIONNAIRE
+  VIDEO
+  HYBRID
+}
+
+enum AssessmentStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
+}
+
+// ──────────────────────────── Pro Players ────────────────────────────
+
+model ProPlayer {
+  id             String        @id @default(cuid())
+  slug           String        @unique // "kevin-de-bruyne"
+  fullName       String
+  knownAs        String // "Kevin De Bruyne"
+  nationality    String
+  club           String?
+  positionGroup  PositionGroup
+  preferredFoot  Foot
+  archetype      String // "Creative low-tempo playmaker"
+  tagline        String // one-liner shown on the match card
+
+  metrics        Json // MetricVector — hand-authored + data-informed
+  styleSummary   String @db.Text // tactical description used in explanations
+  studyClips     Json // [{ title, youtubeId, focusPoint }]
+
+  active         Boolean       @default(true) // retire without deleting history
+
+  matches        MatchResult[]
+  trainingPlans  TrainingPlan[]
+
+  @@index([positionGroup, active])
+}
+
+// ─────────────────────────── Match Results ───────────────────────────
+
+model MatchResult {
+  id            String     @id @default(cuid())
+  assessmentId  String     @unique
+  assessment    Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  proPlayerId   String
+  proPlayer     ProPlayer  @relation(fields: [proPlayerId], references: [id])
+
+  similarity    Float // 0–1 weighted similarity score
+  explanation   String     @db.Text // AI-written tactical "why"
+  runnersUp     Json // [{ proPlayerId, similarity }] — top 2–3 alternates
+  metricDeltas  Json // per-metric gap vs. the pro → drives plan personalization
+
+  createdAt     DateTime   @default(now())
+
+  @@index([proPlayerId])
+}
+
+// ─────────────────────────── Training Plans ──────────────────────────
+
+model TrainingPlan {
+  id           String     @id @default(cuid())
+  proPlayerId  String
+  proPlayer    ProPlayer  @relation(fields: [proPlayerId], references: [id])
+
+  title        String // "The De Bruyne Blueprint: 8-Week Playmaker Program"
+  description  String     @db.Text
+  weeks        Int        @default(8)
+  priceCents   Int // e.g. 4900
+  stripePriceId String    @unique
+  published    Boolean    @default(false)
+
+  sessions     PlanSession[]
+  access       PlanAccess[]
+
+  @@index([proPlayerId, published])
+}
+
+model PlanSession {
+  id        String       @id @default(cuid())
+  planId    String
+  plan      TrainingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  week      Int // 1–8
+  day       Int // 1–7
+  title     String // "Explosive Acceleration: Resisted Sprints"
+  focus     SessionFocus
+  content   Json // ordered blocks: [{ type, name, sets, reps, videoUrl, cues }]
+
+  @@unique([planId, week, day])
+}
+
+enum SessionFocus {
+  STRENGTH
+  SPEED
+  CONDITIONING
+  TECHNICAL
+  TACTICAL
+  RECOVERY
+}
+
+// ──────────────────────── Payments (Stripe) ──────────────────────────
+
+model Purchase {
+  id                      String         @id @default(cuid())
+  userId                  String
+  user                    User           @relation(fields: [userId], references: [id])
+
+  stripeCheckoutSessionId String         @unique
+  stripePaymentIntentId   String?        @unique
+  stripeCustomerId        String
+  amountCents             Int
+  currency                String         @default("usd")
+  status                  PurchaseStatus @default(PENDING)
+
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+
+  planAccess              PlanAccess[]
+}
+
+enum PurchaseStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+// Grants are separate from purchases so you can also grant access via
+// comps, promos, or team licenses without faking a payment record.
+model PlanAccess {
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  planId     String
+  plan       TrainingPlan @relation(fields: [planId], references: [id])
+  purchaseId String?
+  purchase   Purchase?    @relation(fields: [purchaseId], references: [id])
+
+  grantedAt  DateTime     @default(now())
+  expiresAt  DateTime? // null = lifetime
+
+  @@unique([userId, planId])
+}
+
+// Webhook idempotency ledger — process each Stripe event exactly once.
+model StripeEvent {
+  id          String   @id // Stripe event id ("evt_...")
+  type        String
+  processedAt DateTime @default(now())
+}
