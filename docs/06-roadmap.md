@@ -52,11 +52,18 @@ the funnel converts. Each phase ends with something a real user can touch.
 conversion before building video.
 
 ## Phase 4 — Video Analysis (Weeks 6–9)
-- [ ] R2 presigned direct uploads (jersey color/number form)
-- [ ] Inngest pipeline: ffmpeg sampling → frame-batch analysis → aggregation
-      → hybrid merge with quiz metrics → re-match
-- [ ] "Verified by film" badge on results; positioned as the accuracy upgrade
-- [ ] Cost guardrails: 3-min cap, per-user analysis quota, static-frame pre-filter
+- [x] R2 presigned direct uploads (`/upload` with jersey color/number form,
+      XHR progress bar; `/api/upload` mints the PUT URL)
+- [x] Inngest v4 pipeline (`src/inngest/analyze-video.ts`): download →
+      ffmpeg 1 frame/2s @768px → static-frame prefilter → Claude frame
+      batches → event aggregation → confidence-weighted hybrid merge with the
+      latest questionnaire → shared match pipeline (`src/lib/analysis.ts`).
+      Local dev: run `npx inngest-cli@latest dev` alongside `npm run dev`
+- [x] "🎬 Verified by film" badge + processing banner on the dashboard;
+      upload positioned as the accuracy upgrade ("Add game film")
+- [x] Cost guardrails: 200s ffmpeg cap, 250 MB upload cap, 3 analyses per
+      user per 30 days, near-identical-frame skipping, FAILED status via
+      onFailure so the UI never polls forever
 
 ## Phase 5 — Retention & Scale (Weeks 9–12)
 - [ ] Week-4 re-assessment + progression view ("explosiveness +11")

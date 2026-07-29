@@ -10,16 +10,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/db";
 import { isCompleteVector, type PositionGroup } from "@/lib/metrics";
-import { rankMatches, displayMatchPercent, type ProCandidate } from "@/lib/matching";
-import { MATCH_EXPLAINER_SYSTEM, PROMPT_VERSION } from "@/lib/prompts";
+import { PROMPT_VERSION } from "@/lib/prompts";
 import { analyzeQuestionnaire } from "@/lib/ai/questionnaire";
+import { completeAssessment } from "@/lib/analysis";
 import type { QuizAnswers } from "@/data/quiz";
 import type { Foot, PlayingLevel } from "@/generated/prisma/enums";
-
-const anthropic = new Anthropic();
 
 const POSITIONS = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
 const FEET = ["LEFT", "RIGHT", "BOTH"];
@@ -79,83 +76,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "analysis failed, please retry" }, { status: 502 });
   }
 
-  // 2. Match against the active pro roster (in-memory; roster is small).
-  const pros = await prisma.proPlayer.findMany({ where: { active: true } });
-  const candidates: ProCandidate[] = pros.map((p) => ({
-    id: p.id,
-    slug: p.slug,
-    knownAs: p.knownAs,
-    positionGroup: p.positionGroup as PositionGroup,
-    metrics: p.metrics as ProCandidate["metrics"],
-  }));
-
-  const ranked = rankMatches(scored.metrics, body.positionGroup as PositionGroup, candidates);
-  if (ranked.length === 0) {
-    return NextResponse.json({ error: "no candidates — is the roster seeded?" }, { status: 500 });
-  }
-  const best = ranked[0];
-  const bestPro = pros.find((p) => p.id === best.pro.id)!;
-
-  // 3. Generate the tactical explanation, grounded in the numbers only.
-  const explanation = await anthropic.messages.create({
-    model: "claude-sonnet-5",
-    max_tokens: 1200,
-    system: MATCH_EXPLAINER_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: JSON.stringify({
-          athlete: { metrics: scored.metrics, scoutNotes: scored.scoutNotes },
-          pro: {
-            knownAs: bestPro.knownAs,
-            archetype: bestPro.archetype,
-            styleSummary: bestPro.styleSummary,
-            metrics: bestPro.metrics,
-          },
-          deltas: best.deltas,
-          runnersUp: ranked.slice(1).map((r) => r.pro.knownAs),
-        }),
-      },
-    ],
-  });
-  const explanationText = explanation.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("\n");
-
-  // 4. Persist assessment + match.
+  // 2. Persist the assessment shell, then run the shared match pipeline.
   const assessment = await prisma.assessment.create({
     data: {
       userId: user.id,
       inputType: "QUESTIONNAIRE",
-      status: "COMPLETE",
+      status: "PROCESSING",
       rawAnswers: body as never,
-      metrics: scored.metrics,
-      confidence: scored.confidence,
       modelInfo: { model: "claude-sonnet-5", promptVersion: PROMPT_VERSION },
-      completedAt: new Date(),
-      match: {
-        create: {
-          proPlayerId: best.pro.id,
-          similarity: best.similarity,
-          explanation: explanationText,
-          runnersUp: ranked.slice(1).map((r) => ({
-            proPlayerId: r.pro.id,
-            similarity: r.similarity,
-          })),
-          metricDeltas: best.deltas,
-        },
-      },
     },
-    include: { match: true },
+  });
+
+  const outcome = await completeAssessment({
+    assessmentId: assessment.id,
+    position: body.positionGroup as PositionGroup,
+    metrics: scored.metrics,
+    confidence: scored.confidence,
+    scoutNotes: scored.scoutNotes,
   });
 
   return NextResponse.json({
     assessmentId: assessment.id,
     match: {
-      pro: { slug: bestPro.slug, knownAs: bestPro.knownAs, archetype: bestPro.archetype },
-      matchPercent: displayMatchPercent(best.similarity),
-      explanation: explanationText,
+      pro: { slug: outcome.proSlug, knownAs: outcome.proKnownAs, archetype: outcome.archetype },
+      matchPercent: outcome.matchPercent,
+      explanation: outcome.explanation,
     },
   });
 }

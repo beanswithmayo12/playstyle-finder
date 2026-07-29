@@ -14,6 +14,8 @@ export interface StudyClip {
 
 export interface MatchDashboardProps {
   reveal: boolean;
+  filmVerified: boolean;
+  filmProcessing: boolean;
   athleteName: string;
   matchPercent: number;
   pro: {
@@ -76,10 +78,31 @@ export function MatchDashboard(props: MatchDashboardProps) {
           </h1>
           <p className="mt-3 text-lg text-zinc-300">{props.pro.archetype}</p>
           <p className="mt-1 text-sm italic text-zinc-500">&ldquo;{props.pro.tagline}&rdquo;</p>
-          <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-6 py-2">
-            <span className="text-2xl font-bold text-emerald-400">{props.matchPercent}%</span>
-            <span className="text-sm text-zinc-400">style match</span>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <div className="inline-flex items-center gap-3 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-6 py-2">
+              <span className="text-2xl font-bold text-emerald-400">{props.matchPercent}%</span>
+              <span className="text-sm text-zinc-400">style match</span>
+            </div>
+            {props.filmVerified && (
+              <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-400">
+                🎬 Verified by film
+              </span>
+            )}
           </div>
+          {props.filmProcessing && (
+            <p className="mt-4 text-sm text-zinc-500">
+              🎬 Your film analysis is running — this match updates automatically when it finishes.
+            </p>
+          )}
+          {!props.filmVerified && !props.filmProcessing && (
+            <p className="mt-4 text-sm text-zinc-500">
+              Want a sharper read?{" "}
+              <Link href="/upload" className="text-sky-400 underline hover:text-sky-300">
+                Add game film
+              </Link>{" "}
+              for a film-verified match.
+            </p>
+          )}
           <div className="mt-6">
             <button
               onClick={share}

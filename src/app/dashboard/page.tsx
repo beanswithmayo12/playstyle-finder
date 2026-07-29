@@ -33,6 +33,12 @@ export default async function DashboardPage({
   const match = assessment?.match;
   if (!user || !assessment || !match) redirect("/quiz");
 
+  // A film analysis still running in the background?
+  const pendingVideo = await prisma.assessment.findFirst({
+    where: { userId: user.id, status: { in: ["PENDING", "PROCESSING"] }, inputType: { in: ["VIDEO", "HYBRID"] } },
+    select: { id: true },
+  });
+
   const athleteMetrics = assessment.metrics as MetricVector;
   const proMetrics = match.proPlayer.metrics as MetricVector;
   const deltas = match.metricDeltas as MetricVector;
@@ -60,6 +66,8 @@ export default async function DashboardPage({
   return (
     <MatchDashboard
       reveal={reveal === "1"}
+      filmVerified={assessment.inputType !== "QUESTIONNAIRE"}
+      filmProcessing={!!pendingVideo}
       athleteName={user.profile?.displayName ?? "Player"}
       matchPercent={displayMatchPercent(match.similarity)}
       pro={{
