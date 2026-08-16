@@ -33,6 +33,22 @@ model User {
   planAccess   PlanAccess[]
   subscription Subscription?
   completions  SessionCompletion[]
+  build        PlayerBuild?
+}
+
+// The 2K-style dream build: where the athlete WANTS their game to go.
+// One active build per user; (build − latest quiz metrics) = the ambition gap.
+model PlayerBuild {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  positionGroup PositionGroup
+  metrics       Json // MetricVector, each 25–99, total ≤ 850 (src/lib/build.ts)
+  overall       Int // position-weighted OVR, denormalized for display
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model AthleteProfile {

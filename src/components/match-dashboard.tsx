@@ -151,6 +151,25 @@ export function MatchDashboard(props: MatchDashboardProps) {
           </div>
         </section>
 
+        {/* 2K-style build CTA */}
+        <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold">Build your 99 OVR player</h2>
+              <p className="mt-1 text-sm text-zinc-400">
+                Spend attribute points 2K-style on the player you want to become —
+                then see which pros play like your build.
+              </p>
+            </div>
+            <Link
+              href="/build"
+              className="rounded-lg border border-emerald-500/60 px-6 py-3 font-semibold text-emerald-400 transition hover:bg-emerald-500/10"
+            >
+              Open the builder →
+            </Link>
+          </div>
+        </section>
+
         {/* Runners-up */}
         {props.runnersUp.length > 0 && (
           <section className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/30 p-5">
