@@ -2,8 +2,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { METRIC_KEYS, type MetricConfidence, type MetricVector } from "@/lib/metrics";
 import { VIDEO_AGGREGATOR_SYSTEM, VIDEO_FRAME_ANALYST_SYSTEM } from "@/lib/prompts";
 import { submitMetricsTool, type QuestionnaireAnalysis } from "./questionnaire";
+import { isMockAI, mockQuestionnaireAnalysis } from "./mock";
 
-const anthropic = new Anthropic();
+// Lazy so mock mode never needs an API key in the environment.
+let _anthropic: Anthropic | null = null;
+function anthropicClient(): Anthropic {
+  return (_anthropic ??= new Anthropic());
+}
 
 export interface VideoEvent {
   type: string;
@@ -59,6 +64,18 @@ export async function analyzeFrameBatch(
   frames: Frame[],
   meta: { jerseyColor: string; jerseyNumber: string },
 ): Promise<{ events: VideoEvent[]; context: string }> {
+  if (isMockAI()) {
+    const t0 = frames[0]?.timestampSec ?? 0;
+    return {
+      events: [
+        { type: "progressive_action", tStart: t0, tEnd: t0 + 2, description: "[Demo] forward carry", confidence: 0.5 },
+        { type: "take_on", tStart: t0 + 4, tEnd: t0 + 6, description: "[Demo] beats a defender", confidence: 0.5 },
+        { type: "scan", tStart: t0 + 8, tEnd: t0 + 8, description: "[Demo] shoulder check", confidence: 0.5 },
+      ],
+      context: "[Demo mode] canned events — no real film analysis performed",
+    };
+  }
+
   const system = VIDEO_FRAME_ANALYST_SYSTEM.replace("{{JERSEY_COLOR}}", meta.jerseyColor)
     .replace("{{JERSEY_NUMBER}}", meta.jerseyNumber);
 
@@ -70,7 +87,7 @@ export async function analyzeFrameBatch(
     },
   ]);
 
-  const res = await anthropic.messages.create({
+  const res = await anthropicClient().messages.create({
     model: "claude-sonnet-5",
     max_tokens: 3000,
     system,
@@ -91,7 +108,9 @@ export async function aggregateEvents(
   position: string,
   reelDurationSec: number,
 ): Promise<QuestionnaireAnalysis> {
-  const res = await anthropic.messages.create({
+  if (isMockAI()) return mockQuestionnaireAnalysis({ position, events });
+
+  const res = await anthropicClient().messages.create({
     model: "claude-sonnet-5",
     max_tokens: 2000,
     system: VIDEO_AGGREGATOR_SYSTEM,

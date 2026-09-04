@@ -5,11 +5,17 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/db";
-import { type MetricConfidence, type MetricVector, type PositionGroup } from "@/lib/metrics";
+import { METRIC_KEYS, type MetricConfidence, type MetricVector, type PositionGroup } from "@/lib/metrics";
 import { displayMatchPercent, rankMatches, type ProCandidate } from "@/lib/matching";
 import { MATCH_EXPLAINER_SYSTEM } from "@/lib/prompts";
+import { isMockAI, mockExplanation } from "@/lib/ai/mock";
+import { METRIC_LABELS } from "@/components/metric-labels";
 
-const anthropic = new Anthropic();
+// Lazy so mock mode never needs an API key in the environment.
+let _anthropic: Anthropic | null = null;
+function anthropicClient(): Anthropic {
+  return (_anthropic ??= new Anthropic());
+}
 
 export interface MatchOutcome {
   assessmentId: string;
@@ -46,31 +52,46 @@ export async function completeAssessment(args: {
   const best = ranked[0];
   const bestPro = pros.find((p) => p.id === best.pro.id)!;
 
-  const explanation = await anthropic.messages.create({
-    model: "claude-sonnet-5",
-    max_tokens: 1200,
-    system: MATCH_EXPLAINER_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: JSON.stringify({
-          athlete: { metrics: args.metrics, scoutNotes: args.scoutNotes },
-          pro: {
-            knownAs: bestPro.knownAs,
-            archetype: bestPro.archetype,
-            styleSummary: bestPro.styleSummary,
-            metrics: bestPro.metrics,
-          },
-          deltas: best.deltas,
-          runnersUp: ranked.slice(1).map((r) => r.pro.knownAs),
-        }),
-      },
-    ],
-  });
-  const explanationText = explanation.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("\n");
+  let explanationText: string;
+  if (isMockAI()) {
+    const topGaps = METRIC_KEYS.map((k) => ({ k, d: best.deltas[k] }))
+      .filter((g) => g.d > 0)
+      .sort((a, b) => b.d - a.d)
+      .slice(0, 3)
+      .map((g) => `${METRIC_LABELS[g.k]} (−${Math.round(g.d)})`);
+    explanationText = mockExplanation({
+      proKnownAs: bestPro.knownAs,
+      archetype: bestPro.archetype,
+      styleSummary: bestPro.styleSummary,
+      topGaps,
+    });
+  } else {
+    const explanation = await anthropicClient().messages.create({
+      model: "claude-sonnet-5",
+      max_tokens: 1200,
+      system: MATCH_EXPLAINER_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: JSON.stringify({
+            athlete: { metrics: args.metrics, scoutNotes: args.scoutNotes },
+            pro: {
+              knownAs: bestPro.knownAs,
+              archetype: bestPro.archetype,
+              styleSummary: bestPro.styleSummary,
+              metrics: bestPro.metrics,
+            },
+            deltas: best.deltas,
+            runnersUp: ranked.slice(1).map((r) => r.pro.knownAs),
+          }),
+        },
+      ],
+    });
+    explanationText = explanation.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("\n");
+  }
 
   await prisma.$transaction(async (tx) => {
     await tx.matchResult.deleteMany({ where: { assessmentId: args.assessmentId } });
