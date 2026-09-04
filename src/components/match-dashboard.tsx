@@ -94,13 +94,13 @@ export function MatchDashboard(props: MatchDashboardProps) {
               🎬 Your film analysis is running — this match updates automatically when it finishes.
             </p>
           )}
-          {!props.filmVerified && !props.filmProcessing && (
+          {!props.filmProcessing && (
             <p className="mt-4 text-sm text-zinc-500">
-              Want a sharper read?{" "}
+              {props.filmVerified ? "New footage? " : "Want a sharper read? "}
               <Link href="/upload" className="text-sky-400 underline hover:text-sky-300">
                 Add game film
               </Link>{" "}
-              for a film-verified match.
+              {props.filmVerified ? "to refresh your verified match." : "for a film-verified match."}
             </p>
           )}
           <div className="mt-6">

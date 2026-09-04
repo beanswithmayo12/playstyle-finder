@@ -33,17 +33,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "video must be under 250 MB (≈3 minutes)" }, { status: 400 });
   }
 
+  // Garbage-collect stranded rows from crashed runs (they'd otherwise show
+  // a forever-"running" banner and, in real mode, eat quota).
+  const staleCutoff = new Date(Date.now() - 15 * 60 * 1000);
+  await prisma.assessment.deleteMany({
+    where: {
+      userId: user.id,
+      inputType: { in: ["VIDEO", "HYBRID"] },
+      status: "PENDING",
+      createdAt: { lt: staleCutoff },
+    },
+  });
+  await prisma.assessment.updateMany({
+    where: {
+      userId: user.id,
+      inputType: { in: ["VIDEO", "HYBRID"] },
+      status: "PROCESSING",
+      createdAt: { lt: staleCutoff },
+    },
+    data: { status: "FAILED" },
+  });
+
   // Cost guardrail — skipped in mock mode (no AI spend) and blind to
-  // attempts that never produced an analysis (FAILED, or stranded PENDING).
+  // attempts that never produced an analysis.
   if (!isMockAI()) {
-    await prisma.assessment.deleteMany({
-      where: {
-        userId: user.id,
-        inputType: { in: ["VIDEO", "HYBRID"] },
-        status: "PENDING",
-        createdAt: { lt: new Date(Date.now() - 15 * 60 * 1000) },
-      },
-    });
     const since = new Date(Date.now() - 30 * 24 * 3600 * 1000);
     const recent = await prisma.assessment.count({
       where: {

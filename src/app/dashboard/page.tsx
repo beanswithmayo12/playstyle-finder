@@ -33,9 +33,15 @@ export default async function DashboardPage({
   const match = assessment?.match;
   if (!user || !assessment || !match) redirect("/quiz");
 
-  // A film analysis still running in the background?
+  // A film analysis still running in the background? Ignore stale rows from
+  // crashed runs (anything older than 30 min is dead, not running).
   const pendingVideo = await prisma.assessment.findFirst({
-    where: { userId: user.id, status: { in: ["PENDING", "PROCESSING"] }, inputType: { in: ["VIDEO", "HYBRID"] } },
+    where: {
+      userId: user.id,
+      status: { in: ["PENDING", "PROCESSING"] },
+      inputType: { in: ["VIDEO", "HYBRID"] },
+      createdAt: { gte: new Date(Date.now() - 30 * 60 * 1000) },
+    },
     select: { id: true },
   });
 
