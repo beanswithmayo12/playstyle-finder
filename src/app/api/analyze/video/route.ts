@@ -44,17 +44,27 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  await inngest.send({
-    name: "video/analysis.requested",
-    data: {
-      assessmentId: assessment.id,
-      userId: user.id,
-      videoKey,
-      positionGroup: user.profile.positionGroup,
-      jerseyColor: jerseyColor.trim(),
-      jerseyNumber: jerseyNumber.trim(),
-    },
-  });
+  try {
+    await inngest.send({
+      name: "video/analysis.requested",
+      data: {
+        assessmentId: assessment.id,
+        userId: user.id,
+        videoKey,
+        positionGroup: user.profile.positionGroup,
+        jerseyColor: jerseyColor.trim(),
+        jerseyNumber: jerseyNumber.trim(),
+      },
+    });
+  } catch (e) {
+    // Don't strand a PENDING shell (it would eat the user's quota).
+    await prisma.assessment.delete({ where: { id: assessment.id } }).catch(() => {});
+    const msg = e instanceof Error ? e.message : "could not queue analysis";
+    return NextResponse.json(
+      { error: `analysis queue unavailable — is the Inngest dev server running? (${msg.slice(0, 200)})` },
+      { status: 503 },
+    );
+  }
 
   return NextResponse.json({ assessmentId: assessment.id });
 }
