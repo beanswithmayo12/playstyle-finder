@@ -16,7 +16,7 @@ import path from "node:path";
 import ffmpegPath from "ffmpeg-static";
 import { inngest, type VideoAnalysisRequested } from "@/lib/inngest";
 import { prisma } from "@/lib/db";
-import { presignVideoDownload } from "@/lib/r2";
+import { readVideo } from "@/lib/storage";
 import { isCompleteVector, type MetricConfidence, type MetricVector, type PositionGroup } from "@/lib/metrics";
 import { analyzeFrameBatch, aggregateEvents, mergeByConfidence, type Frame, type VideoEvent } from "@/lib/ai/video";
 import { completeAssessment } from "@/lib/analysis";
@@ -57,11 +57,8 @@ export const analyzeVideo = inngest.createFunction(
     const analyzed = await step.run("extract-and-analyze", async () => {
       const dir = await mkdtemp(path.join(tmpdir(), "reel-"));
       try {
-        const url = await presignVideoDownload(videoKey);
         const videoFile = path.join(dir, "input.mp4");
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`video download failed: ${res.status}`);
-        await writeFile(videoFile, Buffer.from(await res.arrayBuffer()));
+        await writeFile(videoFile, await readVideo(videoKey));
 
         // Sample 1 frame / 2s at 768px, hard-capped at MAX_DURATION_SEC.
         await exec(ffmpegPath as unknown as string, [

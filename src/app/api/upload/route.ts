@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
-import { presignVideoUpload } from "@/lib/r2";
+import { presignUpload } from "@/lib/storage";
 
 const MAX_BYTES = 250 * 1024 * 1024;
 const ALLOWED = ["video/mp4", "video/quicktime", "video/webm"];
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   const ext = contentType === "video/webm" ? "webm" : contentType === "video/quicktime" ? "mov" : "mp4";
   const key = `reels/${user.id}/${randomUUID()}.${ext}`;
-  const uploadUrl = await presignVideoUpload(key, contentType);
+  const uploadUrl = await presignUpload(key, contentType);
 
   return NextResponse.json({ uploadUrl, videoKey: key });
 }
