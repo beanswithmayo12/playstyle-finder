@@ -10,10 +10,28 @@
 
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { existsSync } from "node:fs";
 import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import ffmpegPath from "ffmpeg-static";
+
+/** Bundlers can mangle ffmpeg-static's path — fall back to node_modules. */
+function resolveFfmpeg(): string {
+  const candidates = [
+    ffmpegPath as unknown as string,
+    path.join(
+      process.cwd(),
+      "node_modules",
+      "ffmpeg-static",
+      process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg",
+    ),
+  ];
+  for (const c of candidates) {
+    if (c && existsSync(c)) return c;
+  }
+  throw new Error("ffmpeg binary not found — run: npm rebuild ffmpeg-static");
+}
 import { inngest, type VideoAnalysisRequested } from "@/lib/inngest";
 import { prisma } from "@/lib/db";
 import { readVideo } from "@/lib/storage";
@@ -61,7 +79,7 @@ export const analyzeVideo = inngest.createFunction(
         await writeFile(videoFile, await readVideo(videoKey));
 
         // Sample 1 frame / 2s at 768px, hard-capped at MAX_DURATION_SEC.
-        await exec(ffmpegPath as unknown as string, [
+        await exec(resolveFfmpeg(), [
           "-i", videoFile,
           "-t", String(MAX_DURATION_SEC),
           "-vf", `fps=1/${FRAME_INTERVAL_SEC},scale=768:-1`,
