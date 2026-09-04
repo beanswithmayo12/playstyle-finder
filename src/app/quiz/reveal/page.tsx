@@ -19,6 +19,7 @@ export default function RevealPage() {
   const { isLoaded, isSignedIn } = useUser();
   const [status, setStatus] = useState<"idle" | "analyzing" | "error">("idle");
   const [lineIdx, setLineIdx] = useState(0);
+  const [attempt, setAttempt] = useState(0);
   const started = useRef(false);
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function RevealPage() {
         setStatus("error");
       }
     })();
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoaded, isSignedIn, router, attempt]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-6 text-center text-zinc-50">
@@ -75,7 +76,7 @@ export default function RevealPage() {
             onClick={() => {
               setStatus("idle");
               started.current = false;
-              router.refresh();
+              setAttempt((a) => a + 1); // re-arms the analysis effect
             }}
             className="rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400"
           >
