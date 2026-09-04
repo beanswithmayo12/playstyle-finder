@@ -30,6 +30,15 @@ export async function PUT(req: NextRequest) {
   if (data.length === 0 || data.length > MAX_BYTES) {
     return NextResponse.json({ error: "video must be 1 byte – 250 MB" }, { status: 400 });
   }
+  // Next.js silently truncates oversized bodies unless configured — refuse a
+  // partial file rather than analyzing corrupt video.
+  const declared = Number(req.headers.get("content-length") ?? data.length);
+  if (declared && declared !== data.length) {
+    return NextResponse.json(
+      { error: "upload was truncated — restart the dev server so the raised body-size limit applies" },
+      { status: 400 },
+    );
+  }
 
   await writeLocalVideo(key, data);
   return NextResponse.json({ stored: true });
