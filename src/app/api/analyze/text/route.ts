@@ -23,6 +23,18 @@ const FEET = ["LEFT", "RIGHT", "BOTH"];
 const LEVELS = ["YOUTH", "HIGH_SCHOOL", "ACADEMY", "COLLEGE", "SEMI_PRO", "ADULT_AMATEUR"];
 
 export async function POST(req: NextRequest) {
+  try {
+    return await handleAnalyze(req);
+  } catch (e) {
+    // Surface the underlying cause (bad API key, unreachable DB, empty
+    // roster...) to the client instead of an opaque 500 page.
+    console.error("analyze/text failed:", e);
+    const message = e instanceof Error ? e.message : "unexpected error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+async function handleAnalyze(req: NextRequest) {
   const clerkUser = await currentUser();
   if (!clerkUser) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 

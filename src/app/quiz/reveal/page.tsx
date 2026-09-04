@@ -20,6 +20,7 @@ export default function RevealPage() {
   const [status, setStatus] = useState<"idle" | "analyzing" | "error">("idle");
   const [lineIdx, setLineIdx] = useState(0);
   const [attempt, setAttempt] = useState(0);
+  const [errorDetail, setErrorDetail] = useState("");
   const started = useRef(false);
 
   useEffect(() => {
@@ -45,11 +46,19 @@ export default function RevealPage() {
           headers: { "Content-Type": "application/json" },
           body: raw,
         });
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) {
+          const body = await res.text();
+          let msg = body.slice(0, 300);
+          try {
+            msg = JSON.parse(body).error ?? msg;
+          } catch {}
+          throw new Error(msg);
+        }
         sessionStorage.removeItem(QUIZ_STORAGE_KEY);
         router.replace("/dashboard?reveal=1");
-      } catch {
+      } catch (e) {
         started.current = false;
+        setErrorDetail(e instanceof Error ? e.message.slice(0, 300) : "unknown error");
         setStatus("error");
       }
     })();
@@ -72,6 +81,11 @@ export default function RevealPage() {
         <div className="flex flex-col items-center gap-4">
           <h1 className="text-2xl font-bold">Something went wrong.</h1>
           <p className="text-zinc-400">Your answers are safe — let&apos;s try that again.</p>
+          {errorDetail && (
+            <p className="max-w-md rounded-lg border border-red-500/30 bg-red-500/10 p-3 font-mono text-xs text-red-300">
+              {errorDetail}
+            </p>
+          )}
           <button
             onClick={() => {
               setStatus("idle");
