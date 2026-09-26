@@ -31,6 +31,9 @@ export interface MatchDashboardProps {
   gaps: { label: string; delta: number }[];
   runnersUp: { knownAs: string; matchPercent: number }[];
   shareUrl: string;
+  filmSummary: { line: string; moments: number } | null;
+  practiceFocus: { metricLabel: string | null; title: string; detail: string }[];
+  recruiting: { slug: string; published: boolean } | null;
 }
 
 export function MatchDashboard(props: MatchDashboardProps) {
@@ -151,6 +154,49 @@ export function MatchDashboard(props: MatchDashboardProps) {
           </div>
         </section>
 
+        {/* Film breakdown */}
+        {props.filmSummary && (
+          <section className="mt-10 rounded-2xl border border-sky-500/30 bg-sky-500/5 p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold">🎬 Your film breakdown</h2>
+                <p className="mt-1 text-sm text-zinc-300">{props.filmSummary.line}</p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  {props.filmSummary.moments} tagged moments — tap any one to jump to it in your reel.
+                </p>
+              </div>
+              <Link
+                href="/film"
+                className="rounded-lg border border-sky-500/60 px-6 py-3 font-semibold text-sky-300 transition hover:bg-sky-500/10"
+              >
+                Watch the breakdown →
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* Free team-practice focus */}
+        <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <h2 className="text-lg font-bold">At team practice this week</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            No extra training needed — try these at the practices you already go to.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {props.practiceFocus.map((h) => (
+              <li key={h.title} className="flex gap-3">
+                <span className="mt-0.5 shrink-0 rounded-full border border-zinc-700 px-2 py-0.5 text-[11px] text-zinc-400">
+                  {h.metricLabel ?? "Habit"}
+                </span>
+                <div>
+                  <p className="font-semibold text-zinc-100">{h.title}</p>
+                  <p className="text-sm text-zinc-400">{h.detail}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-xs text-zinc-600">New focus every week, based on your biggest gaps.</p>
+        </section>
+
         {/* 2K-style build CTA */}
         <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -218,6 +264,36 @@ export function MatchDashboard(props: MatchDashboardProps) {
           >
             See the program →
           </Link>
+        </section>
+
+        {/* Recruiting profile */}
+        <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold">Recruiting profile</h2>
+              <p className="mt-1 text-sm text-zinc-400">
+                {props.recruiting?.published
+                  ? "Your profile is live. Send the link to college and club coaches."
+                  : "One page for coaches: your ratings, best positions, pro match and film."}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              {props.recruiting?.published && (
+                <Link
+                  href={`/p/${props.recruiting.slug}`}
+                  className="rounded-lg px-4 py-3 text-sm font-semibold text-zinc-300 underline hover:text-zinc-100"
+                >
+                  View
+                </Link>
+              )}
+              <Link
+                href="/profile"
+                className="rounded-lg border border-emerald-500/60 px-6 py-3 font-semibold text-emerald-400 transition hover:bg-emerald-500/10"
+              >
+                {props.recruiting ? "Edit profile" : "Build my profile →"}
+              </Link>
+            </div>
+          </div>
         </section>
 
         <p className="mt-10 text-center text-sm text-zinc-600">

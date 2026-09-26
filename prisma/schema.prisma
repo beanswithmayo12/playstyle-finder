@@ -34,6 +34,7 @@ model User {
   subscription Subscription?
   completions  SessionCompletion[]
   build        PlayerBuild?
+  recruiting   RecruitingProfile?
 }
 
 // The 2K-style dream build: where the athlete WANTS their game to go.
@@ -207,14 +208,22 @@ model PlanSession {
   plan      TrainingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   week      Int // 1–8
-  day       Int // 1–7
+  day       Int // 1–7 for SOLO; TEAM rows use day 0 (one guide per week)
+  track     TrainingTrack @default(SOLO)
   title     String // "Explosive Acceleration: Resisted Sprints"
   focus     SessionFocus
-  content   Json // ordered blocks: [{ name, focus, sets, reps, cues, videoQuery }]
+  content   Json // ordered blocks: [{ kind, name, focus, sets, reps, cues, videoQuery }]
 
   completions SessionCompletion[]
 
-  @@unique([planId, week, day])
+  @@unique([planId, week, day, track])
+}
+
+// SOLO: sessions the athlete does on their own. TEAM: challenges to carry
+// into team practice (habits and focuses, no extra training load).
+enum TrainingTrack {
+  SOLO
+  TEAM
 }
 
 // Session check-offs — powers progress bars and week-4/8 retention emails.
@@ -304,4 +313,27 @@ model StripeEvent {
   id          String   @id // Stripe event id ("evt_...")
   type        String
   processedAt DateTime @default(now())
+}
+
+// Shareable recruiting profile for coaches. Private until the athlete
+// publishes it; many athletes are minors, so nothing is public by default
+// and contact details are optional.
+model RecruitingProfile {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug                 String   @unique // public URL: /p/<slug>
+  published            Boolean  @default(false)
+
+  gradYear             Int?
+  team                 String?
+  location             String?
+  heightCm             Int?
+  bio                  String?  @db.Text
+  contactEmail         String? // shown only when set; parents' email for minors
+  featuredAssessmentId String? // film assessment whose reel is showcased
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }

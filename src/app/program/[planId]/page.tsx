@@ -61,6 +61,7 @@ export default async function ProgramPage({
     id: s.id,
     week: s.week,
     day: s.day,
+    track: s.track,
     title: s.title,
     focus: s.focus,
     content: s.content as unknown as SessionData["content"],

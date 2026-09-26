@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PROS } from "@/data/pros";
 import { METRIC_KEYS, isCompleteVector, type MetricVector, type PositionGroup } from "./metrics";
-import { displayMatchPercent, rankMatches, type ProCandidate } from "./matching";
+import { bestPositions, displayMatchPercent, rankMatches, type ProCandidate } from "./matching";
 
 const candidates: ProCandidate[] = PROS.map((p) => ({
   id: p.slug,
@@ -124,5 +124,24 @@ describe("displayMatchPercent", () => {
 
   it("is monotonic", () => {
     expect(displayMatchPercent(0.9)).toBeGreaterThanOrEqual(displayMatchPercent(0.7));
+  });
+});
+
+describe("bestPositions", () => {
+  it("puts an athlete's own position near the top for a pro-shaped profile", () => {
+    const rodri = candidates.find((c) => c.slug === "rodri")!;
+    const fits = bestPositions(amateurize(rodri.metrics), "DM", candidates);
+    expect(fits.length).toBe(3);
+    expect(fits.map((f) => f.position)).toContain("DM");
+    for (let i = 1; i < fits.length; i++) {
+      expect(fits[i].similarity).toBeLessThanOrEqual(fits[i - 1].similarity);
+    }
+  });
+
+  it("never mixes keepers and outfield players", () => {
+    const vini = candidates.find((c) => c.slug === "vinicius-junior")!;
+    expect(bestPositions(vini.metrics, "W", candidates, 10).some((f) => f.position === "GK")).toBe(false);
+    const keeper = candidates.find((c) => c.slug === "ederson")!;
+    expect(bestPositions(keeper.metrics, "GK", candidates, 10).map((f) => f.position)).toEqual(["GK"]);
   });
 });

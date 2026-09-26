@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 export interface SessionBlockData {
+  kind?: "drill" | "habit";
   name: string;
   focus: string;
   sets: number;
@@ -15,6 +16,7 @@ export interface SessionData {
   id: string;
   week: number;
   day: number;
+  track: "SOLO" | "TEAM";
   title: string;
   focus: string;
   content: {
@@ -42,16 +44,18 @@ export function ProgramView({
   const [done, setDone] = useState<Set<string>>(
     () => new Set(sessions.filter((s) => s.completed).map((s) => s.id)),
   );
-  // Default to the first week with unfinished work — "resume where you left off".
+  const [track, setTrack] = useState<"SOLO" | "TEAM">("SOLO");
+  // Default to the first week with unfinished solo work — "resume where you left off".
   const [week, setWeek] = useState(() => {
-    const firstOpen = sessions.find((s) => !s.completed);
+    const firstOpen = sessions.find((s) => s.track === "SOLO" && !s.completed);
     return firstOpen?.week ?? 1;
   });
   const [open, setOpen] = useState<string | null>(null);
 
+  const trackSessions = useMemo(() => sessions.filter((s) => s.track === track), [sessions, track]);
   const weekSessions = useMemo(
-    () => sessions.filter((s) => s.week === week),
-    [sessions, week],
+    () => trackSessions.filter((s) => s.week === week),
+    [trackSessions, week],
   );
   const progress = Math.round((done.size / sessions.length) * 100);
   const weekTheme = weekSessions[0]?.content.theme;
@@ -97,11 +101,33 @@ export function ProgramView({
         <span className="text-sm font-semibold text-emerald-400">{progress}%</span>
       </div>
 
+      {/* Solo vs team-practice tracks */}
+      <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-1">
+        {([
+          ["SOLO", "On your own", "Sessions to do by yourself"],
+          ["TEAM", "At team practice", "Habits to bring to practice"],
+        ] as const).map(([value, label, sub]) => (
+          <button
+            key={value}
+            onClick={() => {
+              setTrack(value);
+              setOpen(null);
+            }}
+            className={`rounded-lg px-4 py-3 text-left transition ${
+              track === value ? "bg-zinc-800 text-zinc-50" : "text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            <span className="block text-sm font-semibold">{label}</span>
+            <span className="block text-xs text-zinc-500">{sub}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Week navigator */}
       <div className="mt-6 flex flex-wrap gap-2">
         {Array.from({ length: weeks }, (_, i) => i + 1).map((w) => {
-          const wSessions = sessions.filter((s) => s.week === w);
-          const wDone = wSessions.every((s) => done.has(s.id));
+          const wSessions = trackSessions.filter((s) => s.week === w);
+          const wDone = wSessions.length > 0 && wSessions.every((s) => done.has(s.id));
           return (
             <button
               key={w}
@@ -128,6 +154,11 @@ export function ProgramView({
 
       {/* Sessions */}
       <div className="mt-4 space-y-3">
+        {weekSessions.length === 0 && (
+          <p className="rounded-xl border border-zinc-800 p-4 text-sm text-zinc-500">
+            Nothing here yet for this week.
+          </p>
+        )}
         {weekSessions.map((s) => {
           const isOpen = open === s.id;
           const isDone = done.has(s.id);
@@ -146,9 +177,13 @@ export function ProgramView({
                 <button onClick={() => setOpen(isOpen ? null : s.id)} className="flex flex-1 items-center justify-between text-left">
                   <div>
                     <p className={`font-semibold ${isDone ? "text-zinc-400 line-through" : ""}`}>
-                      Day {s.day}: {s.title}
+                      {s.track === "TEAM" ? s.title : `Day ${s.day}: ${s.title}`}
                     </p>
-                    <p className="text-xs text-zinc-500">{s.focus} · {s.content.blocks.length} drills</p>
+                    <p className="text-xs text-zinc-500">
+                      {s.track === "TEAM"
+                        ? `${s.content.blocks.length} challenges · check off when you've done them all`
+                        : `${s.focus} · ${s.content.blocks.length} drills`}
+                    </p>
                   </div>
                   <span className="text-zinc-500">{isOpen ? "▴" : "▾"}</span>
                 </button>
@@ -165,7 +200,7 @@ export function ProgramView({
                             {i + 1}. {b.name}
                           </p>
                           <p className="shrink-0 text-sm font-semibold text-emerald-400">
-                            {b.sets} × {b.reps}
+                            {b.kind === "habit" ? b.reps : `${b.sets} × ${b.reps}`}
                           </p>
                         </div>
                         <ul className="mt-2 space-y-1 text-sm text-zinc-400">
@@ -173,14 +208,16 @@ export function ProgramView({
                             <li key={c}>• {c}</li>
                           ))}
                         </ul>
-                        <a
-                          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(b.videoQuery)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-block text-xs text-zinc-500 underline hover:text-zinc-300"
-                        >
-                          ▶ Watch technique reference
-                        </a>
+                        {b.videoQuery && (
+                          <a
+                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(b.videoQuery)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-block text-xs text-zinc-500 underline hover:text-zinc-300"
+                          >
+                            ▶ Watch technique reference
+                          </a>
+                        )}
                       </li>
                     ))}
                   </ol>

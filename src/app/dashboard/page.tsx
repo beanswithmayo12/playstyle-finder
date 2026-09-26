@@ -6,6 +6,9 @@ import { displayMatchPercent } from "@/lib/matching";
 import { METRIC_LABELS } from "@/components/metric-labels";
 import { MatchDashboard, type StudyClip } from "@/components/match-dashboard";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { loadFilmBreakdown } from "@/lib/film";
+import { statLine } from "@/lib/film-stats";
+import { weeklyPracticeFocus } from "@/data/practice-habits";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +24,7 @@ export default async function DashboardPage({
     where: { clerkId },
     include: {
       profile: true,
+      recruiting: { select: { slug: true, published: true } },
       assessments: {
         where: { status: "COMPLETE" },
         orderBy: { createdAt: "desc" },
@@ -73,6 +77,21 @@ export default async function DashboardPage({
     return pro ? [{ knownAs: pro.knownAs, matchPercent: displayMatchPercent(r.similarity) }] : [];
   });
 
+  // Free team-practice card: habits for the biggest gaps vs the matched pro
+  // (sorted by gap so there are always three, even for a near-perfect match).
+  const practiceFocus = weeklyPracticeFocus(
+    [...METRIC_KEYS].sort((a, b) => deltas[b] - deltas[a]),
+  ).map(({ metric, habit }) => ({
+    metricLabel: metric ? METRIC_LABELS[metric] : null,
+    ...habit,
+  }));
+
+  const film = await loadFilmBreakdown(user.id);
+  const filmSummary =
+    film && film.moments.length > 0
+      ? { line: statLine(film.stats), moments: film.moments.length }
+      : null;
+
   const { reveal } = await searchParams;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -96,6 +115,9 @@ export default async function DashboardPage({
       gaps={gaps}
       runnersUp={runnersUp}
       shareUrl={`${appUrl}/m/${match.id}`}
+      filmSummary={filmSummary}
+      practiceFocus={practiceFocus}
+      recruiting={user.recruiting ?? null}
     />
   );
 }

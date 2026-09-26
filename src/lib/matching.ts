@@ -156,3 +156,41 @@ function round1(x: number): number {
 export function displayMatchPercent(similarity: number): number {
   return Math.round(clamp01((similarity - 0.5) / 0.45) * 24 + 70); // 70–94%
 }
+
+export interface PositionFit {
+  position: PositionGroup;
+  matchPercent: number;
+  similarity: number;
+  closestPro: string;
+}
+
+/**
+ * Where else does this profile fit? Scores the athlete against each position
+ * group's pros on that position's own weights. Keepers and outfield players
+ * never cross over — a field player is never told they profile as a keeper.
+ */
+export function bestPositions(
+  athleteMetrics: MetricVector,
+  athletePosition: PositionGroup,
+  pros: ProCandidate[],
+  topN = 3,
+): PositionFit[] {
+  const groups = [...new Set(pros.map((p) => p.positionGroup))].filter((g) =>
+    athletePosition === "GK" ? g === "GK" : g !== "GK",
+  );
+  return groups
+    .flatMap((group) => {
+      const pool = pros.filter((p) => p.positionGroup === group);
+      const [best] = rankMatches(athleteMetrics, group, pool, 1);
+      return best
+        ? [{
+            position: group,
+            similarity: best.similarity,
+            matchPercent: displayMatchPercent(best.similarity),
+            closestPro: best.pro.knownAs,
+          }]
+        : [];
+    })
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, topN);
+}

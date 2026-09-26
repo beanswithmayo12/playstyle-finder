@@ -17,7 +17,7 @@ export default async function PlansPage() {
     where: { published: true },
     include: {
       proPlayer: true,
-      sessions: { where: { week: 1 }, orderBy: { day: "asc" } },
+      sessions: { where: { week: 1, track: "SOLO" }, orderBy: { day: "asc" } },
     },
   });
 
@@ -105,8 +105,12 @@ export default async function PlansPage() {
                 ))}
               </ul>
               <p className="mt-4 text-sm text-zinc-500">
-                Weeks 2–8: Build → Peak → Integration phases. 32 sessions total,
+                Weeks 2–8: Build → Peak → Integration phases. 32 solo sessions total,
                 every drill with sets, reps, coaching cues, and video reference.
+              </p>
+              <p className="mt-2 text-sm text-zinc-500">
+                Plus a team-practice track: weekly challenges to bring to the practices
+                you already attend, so your team training builds the same habits.
               </p>
             </div>
 

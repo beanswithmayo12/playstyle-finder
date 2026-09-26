@@ -56,3 +56,14 @@ function safeLocalPath(key: string): string {
   if (!p.startsWith(LOCAL_DIR + path.sep)) throw new Error("invalid storage key");
   return p;
 }
+
+/** URL a <video> element can play and seek (either mode). */
+export async function playbackUrl(key: string): Promise<string> {
+  if (storageMode() === "r2") return presignVideoDownload(key);
+  return `/api/local-video?key=${encodeURIComponent(key)}`;
+}
+
+/** Local mode: absolute on-disk path for a stored reel. */
+export function localVideoPath(key: string): string {
+  return safeLocalPath(key);
+}

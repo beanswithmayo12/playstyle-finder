@@ -8,6 +8,7 @@ import "dotenv/config";
 import { prisma } from "../src/lib/db";
 import { PROS } from "../src/data/pros";
 import { PROGRAMS, buildProgramSessions } from "../src/data/programs";
+import { buildTeamPracticeSessions } from "../src/data/practice-habits";
 import { isCompleteVector } from "../src/lib/metrics";
 
 async function main() {
@@ -72,22 +73,29 @@ async function main() {
       },
     });
 
-    for (const s of buildProgramSessions(def)) {
-      await prisma.planSession.upsert({
-        where: { planId_week_day: { planId: plan.id, week: s.week, day: s.day } },
-        create: {
-          planId: plan.id,
-          week: s.week,
-          day: s.day,
-          title: s.title,
-          focus: s.focus,
-          content: s.content,
-        },
-        update: { title: s.title, focus: s.focus, content: s.content },
-      });
+    const tracks = [
+      ["SOLO", buildProgramSessions(def)],
+      ["TEAM", buildTeamPracticeSessions(def)],
+    ] as const;
+    for (const [track, sessions] of tracks) {
+      for (const s of sessions) {
+        await prisma.planSession.upsert({
+          where: { planId_week_day_track: { planId: plan.id, week: s.week, day: s.day, track } },
+          create: {
+            planId: plan.id,
+            week: s.week,
+            day: s.day,
+            track,
+            title: s.title,
+            focus: s.focus,
+            content: s.content,
+          },
+          update: { title: s.title, focus: s.focus, content: s.content },
+        });
+      }
     }
   }
-  console.log(`Seeded ${PROGRAMS.length} training programs (32 sessions each).`);
+  console.log(`Seeded ${PROGRAMS.length} training programs (32 solo sessions + 8 team-practice guides each).`);
 }
 
 main()

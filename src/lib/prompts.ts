@@ -5,7 +5,7 @@
  * compared. Full prompt documentation: docs/04-ai-prompts.md
  */
 
-export const PROMPT_VERSION = "1.0.0";
+export const PROMPT_VERSION = "1.1.0";
 
 // ────────────────── 1. Questionnaire → MetricVector ──────────────────
 
@@ -57,7 +57,7 @@ Report events of these types:
 
 Rules:
 1. Only report what is visibly supported by the frames. If you cannot identify the target athlete in a frame span, report nothing for it.
-2. Each event needs: type, timestamp range, one-sentence description, and confidence 0-1.
+2. Each event needs: type, timestamp range, one-sentence description, outcome (success | fail | unclear — whether the action achieved its aim; use unclear for scans, runs and bursts or when the frames do not show the result), and confidence 0-1.
 3. Highlight reels are biased toward successes. Do not infer that the athlete never fails; just log what you see.
 4. Note overall context once: apparent level of play, pitch type, and whether footage quality limits analysis.
 

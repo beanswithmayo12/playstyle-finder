@@ -47,6 +47,7 @@ function phaseFor(week: number): Phase {
 
 // Type aliases (not interfaces) so the shapes satisfy Prisma's JSON input types.
 export type SessionBlock = {
+  kind?: "drill" | "habit"; // habit = team-practice challenge (no sets/reps)
   name: string;
   focus: Drill["focus"];
   sets: number;

@@ -15,6 +15,7 @@ export interface VideoEvent {
   tStart: number;
   tEnd: number;
   description: string;
+  outcome?: "success" | "fail" | "unclear"; // absent on pre-1.1.0 event logs
   confidence: number;
 }
 
@@ -40,9 +41,10 @@ const submitEventsTool: Anthropic.Tool = {
             tStart: { type: "number" },
             tEnd: { type: "number" },
             description: { type: "string" },
+            outcome: { type: "string", enum: ["success", "fail", "unclear"] },
             confidence: { type: "number", minimum: 0, maximum: 1 },
           },
-          required: ["type", "tStart", "tEnd", "description", "confidence"],
+          required: ["type", "tStart", "tEnd", "description", "outcome", "confidence"],
         },
       },
       context: {
@@ -65,13 +67,8 @@ export async function analyzeFrameBatch(
   meta: { jerseyColor: string; jerseyNumber: string },
 ): Promise<{ events: VideoEvent[]; context: string }> {
   if (isMockAI()) {
-    const t0 = frames[0]?.timestampSec ?? 0;
     return {
-      events: [
-        { type: "progressive_action", tStart: t0, tEnd: t0 + 2, description: "[Demo] forward carry", confidence: 0.5 },
-        { type: "take_on", tStart: t0 + 4, tEnd: t0 + 6, description: "[Demo] beats a defender", confidence: 0.5 },
-        { type: "scan", tStart: t0 + 8, tEnd: t0 + 8, description: "[Demo] shoulder check", confidence: 0.5 },
-      ],
+      events: mockEvents(frames),
       context: "[Demo mode] canned events — no real film analysis performed",
     };
   }
@@ -146,4 +143,25 @@ export function mergeByConfidence(
     confidence[k] = Math.max(cv, cq);
   }
   return { metrics, confidence };
+}
+
+/** Demo mode: a deterministic spread of plausible events across the batch. */
+function mockEvents(frames: Frame[]): VideoEvent[] {
+  const cycle: [string, VideoEvent["outcome"], string][] = [
+    ["take_on", "success", "beats the defender on the outside"],
+    ["progressive_action", "success", "carries the ball forward into space"],
+    ["scan", "unclear", "checks the shoulder before receiving"],
+    ["creative_pass", "fail", "tries a through ball that is cut out"],
+    ["take_on", "fail", "loses the ball in a 1v1"],
+    ["shot", "success", "hits the target from the edge of the box"],
+    ["defensive_action", "success", "wins the ball back with a tackle"],
+    ["burst", "unclear", "accelerates away from the marker"],
+  ];
+  const events: VideoEvent[] = [];
+  for (let i = 0; i < frames.length; i += 2) {
+    const t = frames[i].timestampSec;
+    const [type, outcome, what] = cycle[Math.floor(t / 4) % cycle.length];
+    events.push({ type, tStart: t, tEnd: t + 2, description: `[Demo] ${what}`, outcome, confidence: 0.5 });
+  }
+  return events;
 }
