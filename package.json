@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "test": "vitest run",
-    "tune:matcher": "tsx scripts/tune-matcher.ts"
+    "tune:matcher": "tsx scripts/tune-matcher.ts",
+    "db:sync": "prisma db push && prisma generate && prisma db seed"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
