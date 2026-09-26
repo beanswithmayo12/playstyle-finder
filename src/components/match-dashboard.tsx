@@ -183,8 +183,8 @@ export function MatchDashboard(props: MatchDashboardProps) {
           </p>
           <ul className="mt-4 space-y-3">
             {props.practiceFocus.map((h) => (
-              <li key={h.title} className="flex gap-3">
-                <span className="mt-0.5 shrink-0 rounded-full border border-zinc-700 px-2 py-0.5 text-[11px] text-zinc-400">
+              <li key={h.title} className="flex items-start gap-3">
+                <span className="mt-0.5 w-24 shrink-0 truncate rounded-full border border-zinc-700 px-2 py-0.5 text-center text-[11px] text-zinc-400">
                   {h.metricLabel ?? "Habit"}
                 </span>
                 <div>
