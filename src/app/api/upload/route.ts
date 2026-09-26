@@ -6,8 +6,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
+import { ensureUser } from "@/lib/users";
 import { presignUpload } from "@/lib/storage";
 import { isMockAI } from "@/lib/ai/mock";
 
@@ -16,11 +16,9 @@ const ALLOWED = ["video/mp4", "video/quicktime", "video/webm"];
 const MONTHLY_QUOTA = 3;
 
 export async function POST(req: NextRequest) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
-  const user = await prisma.user.findUnique({ where: { clerkId } });
-  if (!user) return NextResponse.json({ error: "take the quiz first" }, { status: 400 });
+  const session = await ensureUser();
+  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const { user } = session;
 
   const { contentType, sizeBytes } = (await req.json()) as {
     contentType?: string;

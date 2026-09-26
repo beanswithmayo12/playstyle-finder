@@ -5,6 +5,7 @@ import { METRIC_KEYS, type MetricVector } from "@/lib/metrics";
 import { displayMatchPercent } from "@/lib/matching";
 import { METRIC_LABELS } from "@/components/metric-labels";
 import { MatchDashboard, type StudyClip } from "@/components/match-dashboard";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export default async function DashboardPage({
   searchParams: Promise<{ reveal?: string }>;
 }) {
   const { userId: clerkId } = await auth();
-  if (!clerkId) redirect("/quiz");
+  if (!clerkId) redirect("/");
 
   const user = await prisma.user.findUnique({
     where: { clerkId },
@@ -29,9 +30,7 @@ export default async function DashboardPage({
     },
   });
 
-  const assessment = user?.assessments[0];
-  const match = assessment?.match;
-  if (!user || !assessment || !match) redirect("/quiz");
+  if (!user) redirect("/");
 
   // A film analysis still running in the background? Ignore stale rows from
   // crashed runs (anything older than 30 min is dead, not running).
@@ -44,6 +43,14 @@ export default async function DashboardPage({
     },
     select: { id: true },
   });
+
+  const assessment = user.assessments[0];
+  const match = assessment?.match;
+  if (!assessment || !match) {
+    // Film-first athletes have no match until their first reel finishes.
+    if (pendingVideo) return <FilmProcessing />;
+    redirect("/");
+  }
 
   const athleteMetrics = assessment.metrics as MetricVector;
   const proMetrics = match.proPlayer.metrics as MetricVector;
@@ -90,5 +97,19 @@ export default async function DashboardPage({
       runnersUp={runnersUp}
       shareUrl={`${appUrl}/m/${match.id}`}
     />
+  );
+}
+
+function FilmProcessing() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-6 text-center text-zinc-50">
+      <AutoRefresh />
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-zinc-700 border-t-emerald-500" />
+      <h1 className="mt-6 text-2xl font-bold">Your film is being scouted…</h1>
+      <p className="mt-2 max-w-sm text-zinc-400">
+        This page updates on its own — your match appears here as soon as the
+        analysis finishes.
+      </p>
+    </main>
   );
 }

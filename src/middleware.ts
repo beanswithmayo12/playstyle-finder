@@ -1,13 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Public: marketing pages, the free quiz funnel, and incoming webhooks.
-// Everything else (dashboard, program delivery) requires a session.
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/program(.*)",
-  "/upload(.*)",
-  "/build(.*)",
-]);
+// Public: marketing pages, the free quiz and film funnels (both gate inline
+// with sign-up), and incoming webhooks. Everything else requires a session.
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/program(.*)", "/build(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) await auth.protect();

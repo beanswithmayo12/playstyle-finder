@@ -1,29 +1,37 @@
 /**
  * POST /api/analyze/video — kick off the background video analysis.
- * Body: { videoKey, jerseyColor, jerseyNumber }
- * Requires an existing profile (position comes from it) — the upload page
- * sends athletes without one through the quiz first.
+ * Body: { videoKey, jerseyColor, jerseyNumber, positionGroup }
+ * Film is a first-class entry point: the upload form supplies the position,
+ * and the athlete profile is created here if the quiz was never taken.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { inngest } from "@/lib/inngest";
+import { ensureUser } from "@/lib/users";
+import type { PositionGroup } from "@/lib/metrics";
+
+const POSITIONS = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
 
 export async function POST(req: NextRequest) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const session = await ensureUser();
+  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const { user, displayName } = session;
 
-  const user = await prisma.user.findUnique({ where: { clerkId }, include: { profile: true } });
-  if (!user?.profile) {
-    return NextResponse.json({ error: "complete the questionnaire first" }, { status: 400 });
-  }
-
-  const { videoKey, jerseyColor, jerseyNumber } = (await req.json()) as {
+  const { videoKey, jerseyColor, jerseyNumber, positionGroup } = (await req.json()) as {
     videoKey?: string;
     jerseyColor?: string;
     jerseyNumber?: string;
+    positionGroup?: string;
   };
+  if (!positionGroup || !POSITIONS.includes(positionGroup)) {
+    return NextResponse.json({ error: "pick the position you play" }, { status: 400 });
+  }
+  const profile = await prisma.athleteProfile.upsert({
+    where: { userId: user.id },
+    create: { userId: user.id, displayName, positionGroup: positionGroup as PositionGroup },
+    update: { positionGroup: positionGroup as PositionGroup },
+  });
   if (!videoKey?.startsWith(`reels/${user.id}/`)) {
     return NextResponse.json({ error: "invalid video key" }, { status: 400 });
   }
@@ -51,7 +59,7 @@ export async function POST(req: NextRequest) {
         assessmentId: assessment.id,
         userId: user.id,
         videoKey,
-        positionGroup: user.profile.positionGroup,
+        positionGroup: profile.positionGroup,
         jerseyColor: jerseyColor.trim(),
         jerseyNumber: jerseyNumber.trim(),
       },

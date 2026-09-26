@@ -6,7 +6,13 @@
  * as demo content. Real mode is untouched when the flag is off.
  */
 
-import { METRIC_KEYS, type MetricConfidence, type MetricVector } from "@/lib/metrics";
+import {
+  METRIC_KEYS,
+  POSITION_WEIGHTS,
+  type MetricConfidence,
+  type MetricVector,
+  type PositionGroup,
+} from "@/lib/metrics";
 import type { QuestionnaireAnalysis } from "./questionnaire";
 
 export function isMockAI(): boolean {
@@ -65,6 +71,13 @@ export function mockQuestionnaireAnalysis(rawAnswers: unknown): QuestionnaireAna
   METRIC_KEYS.forEach((k, i) => {
     metrics[k] = 45 + jitter(text, i);
   });
+  // Lean toward the position's signature attributes, so film-only demo
+  // profiles (no quiz keywords) still resemble the position they play.
+  const position = (rawAnswers as { position?: string } | null)?.position;
+  if (position && position in POSITION_WEIGHTS) {
+    const w = POSITION_WEIGHTS[position as PositionGroup];
+    for (const k of METRIC_KEYS) metrics[k] += (w[k] - 1) * 12;
+  }
   for (const [needle, deltas] of RULES) {
     if (!text.includes(needle)) continue;
     for (const [k, d] of Object.entries(deltas)) {

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function BuildPage() {
   const { userId: clerkId } = await auth();
-  if (!clerkId) redirect("/quiz");
+  if (!clerkId) redirect("/");
 
   const user = await prisma.user.findUnique({
     where: { clerkId },
@@ -24,7 +24,7 @@ export default async function BuildPage() {
     },
   });
   // The builder needs a position and a "you today" baseline → quiz first.
-  if (!user?.profile || !user.assessments[0]?.metrics) redirect("/quiz");
+  if (!user?.profile || !user.assessments[0]?.metrics) redirect("/");
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">

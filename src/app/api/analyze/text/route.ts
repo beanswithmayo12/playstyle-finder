@@ -9,8 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
+import { ensureUser } from "@/lib/users";
 import { isCompleteVector, type PositionGroup } from "@/lib/metrics";
 import { PROMPT_VERSION } from "@/lib/prompts";
 import { analyzeQuestionnaire } from "@/lib/ai/questionnaire";
@@ -35,8 +35,9 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleAnalyze(req: NextRequest) {
-  const clerkUser = await currentUser();
-  if (!clerkUser) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const session = await ensureUser();
+  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const { user, displayName } = session;
 
   const body = (await req.json()) as QuizAnswers;
   if (
@@ -48,18 +49,6 @@ async function handleAnalyze(req: NextRequest) {
   ) {
     return NextResponse.json({ error: "invalid quiz payload" }, { status: 400 });
   }
-
-  const email = clerkUser.primaryEmailAddress?.emailAddress;
-  if (!email) return NextResponse.json({ error: "no email on account" }, { status: 400 });
-
-  const displayName =
-    clerkUser.firstName ?? clerkUser.username ?? email.split("@")[0];
-
-  const user = await prisma.user.upsert({
-    where: { clerkId: clerkUser.id },
-    create: { clerkId: clerkUser.id, email },
-    update: { email },
-  });
 
   await prisma.athleteProfile.upsert({
     where: { userId: user.id },
