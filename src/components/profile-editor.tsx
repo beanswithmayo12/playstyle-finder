@@ -16,7 +16,7 @@ interface ProfileState {
 }
 
 const input =
-  "w-full rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none";
+  "w-full rounded-lg border border-rule bg-surface p-3 text-ink placeholder:text-faint focus:border-cobalt focus:outline-none";
 
 export function ProfileEditor({
   initial,
@@ -71,19 +71,19 @@ export function ProfileEditor({
   return (
     <div className="mt-8 space-y-5">
       {!hasAnalysis && (
-        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
+        <p className="rounded-xl border border-warn/40 bg-warn/10 p-4 text-sm text-warn">
           Your profile shows your ratings and pro match, so you&apos;ll need one analysis
           (film or quiz) before you can publish.
         </p>
       )}
 
-      <p className="text-sm text-zinc-500">
-        Name shown: <span className="text-zinc-300">{displayName}</span> (from your account)
+      <p className="text-sm text-soft">
+        Name shown: <span className="text-ink-2">{displayName}</span> (from your account)
       </p>
 
       <div className="grid grid-cols-2 gap-4">
         <label className="block">
-          <span className="mb-2 block text-sm font-medium text-zinc-300">Graduation year</span>
+          <span className="mb-2 block text-sm font-medium text-ink-2">Graduation year</span>
           <input
             type="number"
             value={p.gradYear ?? ""}
@@ -93,7 +93,7 @@ export function ProfileEditor({
           />
         </label>
         <label className="block">
-          <span className="mb-2 block text-sm font-medium text-zinc-300">Height (cm)</span>
+          <span className="mb-2 block text-sm font-medium text-ink-2">Height (cm)</span>
           <input
             type="number"
             value={p.heightCm ?? ""}
@@ -105,17 +105,17 @@ export function ProfileEditor({
       </div>
 
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-zinc-300">Current team</span>
+        <span className="mb-2 block text-sm font-medium text-ink-2">Current team</span>
         <input value={p.team} onChange={(e) => set("team", e.target.value)} placeholder="e.g. Lincoln High / FC Metro U17" className={input} />
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-zinc-300">Location</span>
+        <span className="mb-2 block text-sm font-medium text-ink-2">Location</span>
         <input value={p.location} onChange={(e) => set("location", e.target.value)} placeholder="City, state — no street address" className={input} />
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-zinc-300">About you</span>
+        <span className="mb-2 block text-sm font-medium text-ink-2">About you</span>
         <textarea
           value={p.bio}
           onChange={(e) => set("bio", e.target.value)}
@@ -127,7 +127,7 @@ export function ProfileEditor({
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-zinc-300">Featured highlight reel</span>
+        <span className="mb-2 block text-sm font-medium text-ink-2">Featured highlight reel</span>
         {reels.length > 0 ? (
           <select
             value={p.featuredAssessmentId ?? ""}
@@ -142,9 +142,9 @@ export function ProfileEditor({
             ))}
           </select>
         ) : (
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-soft">
             No analyzed reels yet —{" "}
-            <Link href="/upload" className="text-emerald-400 underline">
+            <Link href="/upload" className="text-cobalt underline">
               upload one
             </Link>{" "}
             to showcase your film.
@@ -153,7 +153,7 @@ export function ProfileEditor({
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-zinc-300">Contact email (optional)</span>
+        <span className="mb-2 block text-sm font-medium text-ink-2">Contact email (optional)</span>
         <input
           type="email"
           value={p.contactEmail}
@@ -161,45 +161,45 @@ export function ProfileEditor({
           placeholder="Under 18? Use a parent's or coach's email"
           className={input}
         />
-        <span className="mt-1 block text-xs text-zinc-500">
+        <span className="mt-1 block text-xs text-soft">
           Shown as a Contact button on your public page. Leave blank to hide it.
         </span>
       </label>
 
-      {message && <p className={`text-sm ${message.ok ? "text-emerald-400" : "text-red-400"}`}>{message.text}</p>}
+      {message && <p className={`text-sm ${message.ok ? "text-cobalt" : "text-bad"}`}>{message.text}</p>}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-zinc-900 pt-5">
+      <div className="flex flex-wrap items-center gap-3 border-t border-rule pt-5">
         <button
           onClick={() => save(true)}
           disabled={saving || !hasAnalysis}
-          className="rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-40"
+          className="rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
         >
           {p.published ? "Save & keep public" : "Publish profile"}
         </button>
         <button
           onClick={() => save(false)}
           disabled={saving}
-          className="rounded-lg border border-zinc-700 px-6 py-3 font-semibold text-zinc-200 transition hover:border-zinc-500 disabled:opacity-40"
+          className="rounded-lg border border-rule px-6 py-3 font-semibold text-ink-2 transition hover:border-cobalt disabled:opacity-40"
         >
           {p.published ? "Make private" : "Save as private"}
         </button>
         {p.slug && (
-          <Link href={`/p/${p.slug}`} className="text-sm text-zinc-400 underline hover:text-zinc-200">
+          <Link href={`/p/${p.slug}`} className="text-sm text-soft underline hover:text-cobalt">
             {p.published ? "View public page" : "Preview"}
           </Link>
         )}
       </div>
 
       {p.published && shareUrl && (
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
-          <code className="min-w-0 flex-1 truncate text-sm text-zinc-300">{shareUrl}</code>
+        <div className="flex items-center gap-3 rounded-xl border border-cobalt/30 bg-cobalt/5 p-4">
+          <code className="min-w-0 flex-1 truncate text-sm text-ink-2">{shareUrl}</code>
           <button
             onClick={async () => {
               await navigator.clipboard.writeText(shareUrl);
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className="shrink-0 rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold transition hover:border-emerald-500"
+            className="shrink-0 rounded-lg border border-rule px-4 py-2 text-sm font-semibold transition hover:border-cobalt"
           >
             {copied ? "Copied ✓" : "Copy link"}
           </button>

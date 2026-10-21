@@ -30,13 +30,13 @@ export async function GET(
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#09090b",
-          color: "#fafafa",
+          backgroundColor: "#f8fafc",
+          color: "#0f1d30",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", fontSize: 28, color: "#a1a1aa" }}>
-          ⚽ Playstyle Finder
+        <div style={{ display: "flex", fontSize: 28, color: "#5b6b7d" }}>
+          Playstyle Finder
         </div>
         <div
           style={{
@@ -45,7 +45,7 @@ export async function GET(
             fontSize: 26,
             letterSpacing: 6,
             textTransform: "uppercase",
-            color: "#71717a",
+            color: "#1e4fd8",
           }}
         >
           Playstyle match
@@ -56,12 +56,12 @@ export async function GET(
             marginTop: 16,
             fontSize: 88,
             fontWeight: 800,
-            color: "#34d399",
+            color: "#0f1d30",
           }}
         >
           {match.proPlayer.knownAs}
         </div>
-        <div style={{ display: "flex", marginTop: 12, fontSize: 34, color: "#d4d4d8" }}>
+        <div style={{ display: "flex", marginTop: 12, fontSize: 34, color: "#2a3a52" }}>
           {match.proPlayer.archetype}
         </div>
         <div
@@ -69,18 +69,17 @@ export async function GET(
             display: "flex",
             marginTop: 36,
             padding: "14px 40px",
-            borderRadius: 999,
-            border: "2px solid #10b98166",
-            backgroundColor: "#10b9811a",
+            border: "2px solid #1e4fd8",
+            backgroundColor: "#1e4fd8",
             fontSize: 40,
             fontWeight: 700,
-            color: "#34d399",
+            color: "#ffffff",
           }}
         >
           {pct}% style match
         </div>
-        <div style={{ display: "flex", marginTop: 40, fontSize: 24, color: "#71717a" }}>
-          Which pro does YOUR game match? Free 3-minute analysis.
+        <div style={{ display: "flex", marginTop: 40, fontSize: 24, color: "#5b6b7d" }}>
+          Same game. Different stage. Find your pro twin, free.
         </div>
       </div>
     ),

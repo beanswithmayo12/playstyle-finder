@@ -11,7 +11,7 @@ const YOUTUBE_RE = /^(https?:\/\/)?(www\.|m\.)?(youtube\.com\/(watch\?v=|shorts\
 export function LandingUpload() {
   const router = useRouter();
   const [link, setLink] = useState("");
-  const [linkMsg, setLinkMsg] = useState<{ kind: "youtube" | "invalid" } | null>(null);
+  const [linkMsg, setLinkMsg] = useState<"youtube" | "invalid" | null>(null);
   const [saving, setSaving] = useState(false);
 
   async function handleFile(file: File) {
@@ -25,41 +25,40 @@ export function LandingUpload() {
     e.preventDefault();
     const url = link.trim();
     if (!url) return;
-    setLinkMsg({ kind: YOUTUBE_RE.test(url) ? "youtube" : "invalid" });
+    setLinkMsg(YOUTUBE_RE.test(url) ? "youtube" : "invalid");
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="max-w-xl">
       {saving ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-emerald-500/50 bg-emerald-500/5 px-6 py-14">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-700 border-t-emerald-500" />
-          <p className="mt-4 font-semibold">Getting your reel ready…</p>
+        <div className="offset-shadow flex items-center gap-4 border-[1.5px] border-cobalt bg-surface px-5 py-5">
+          <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-rule border-t-cobalt" />
+          <p className="font-semibold">Getting your reel ready…</p>
         </div>
       ) : (
         <VideoDropzone onFile={handleFile} />
       )}
 
-      <form onSubmit={handleLink} className="mt-4 flex gap-2">
+      <form onSubmit={handleLink} className="mt-5 flex gap-2">
+        <label htmlFor="reel-link" className="sr-only">YouTube link</label>
         <input
+          id="reel-link"
           value={link}
           onChange={(e) => {
             setLink(e.target.value);
             setLinkMsg(null);
           }}
           placeholder="…or paste a YouTube link"
-          className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
+          className="input min-w-0 flex-1 py-2.5 text-sm"
         />
-        <button
-          type="submit"
-          className="shrink-0 rounded-xl border border-zinc-700 px-5 py-3 text-sm font-semibold text-zinc-200 transition hover:border-emerald-500"
-        >
+        <button type="submit" className="btn-secondary shrink-0 px-4 py-2.5 text-sm">
           Use link
         </button>
       </form>
 
-      {linkMsg?.kind === "youtube" && (
-        <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-left text-sm text-amber-200">
-          We can&apos;t pull videos straight from YouTube yet — YouTube doesn&apos;t
+      {linkMsg === "youtube" && (
+        <p className="mt-3 border border-warn/40 bg-warn/10 p-3 text-sm text-warn">
+          We can&apos;t pull videos straight from YouTube yet, because YouTube doesn&apos;t
           allow other sites to download them. If it&apos;s your video, download it in{" "}
           <a
             href="https://support.google.com/youtube/answer/56100"
@@ -70,23 +69,20 @@ export function LandingUpload() {
             YouTube Studio
           </a>{" "}
           (Content → ⋮ → Download) and drop the file above.
-        </div>
+        </p>
       )}
-      {linkMsg?.kind === "invalid" && (
-        <p className="mt-3 text-sm text-red-400">
-          That doesn&apos;t look like a YouTube link — try a youtube.com or youtu.be URL.
+      {linkMsg === "invalid" && (
+        <p className="mt-3 text-sm text-bad">
+          That doesn&apos;t look like a YouTube link. Try a youtube.com or youtu.be URL.
         </p>
       )}
 
-      <div className="mt-8 flex flex-col items-center gap-3">
-        <p className="text-sm text-zinc-500">No highlights yet?</p>
-        <Link
-          href="/quiz"
-          className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 font-semibold text-zinc-100 transition hover:border-emerald-500"
-        >
-          Take the 3-minute quiz instead →
+      <p className="mt-5 text-soft">
+        No highlights yet?{" "}
+        <Link href="/quiz" className="text-ink underline underline-offset-4 hover:text-cobalt">
+          Take the 3-minute quiz
         </Link>
-      </div>
+      </p>
     </div>
   );
 }

@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import type { VideoEvent } from "@/lib/ai/video";
 import { computeFilmStats, statLine } from "@/lib/film-stats";
+import { SiteHeader } from "@/components/site-header";
 import { ProfileEditor } from "@/components/profile-editor";
 
 export const dynamic = "force-dynamic";
@@ -37,16 +37,11 @@ export default async function ProfileEditorPage() {
 
   const r = user.recruiting;
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      <header className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
-        <Link href="/dashboard" className="text-sm font-semibold text-zinc-300">
-          ← Your match
-        </Link>
-        <span className="text-sm text-zinc-500">⚽ Playstyle Finder</span>
-      </header>
+    <main className="min-h-screen text-ink">
+      <SiteHeader back={{ href: "/dashboard", label: "Your match" }} width="max-w-2xl" />
       <div className="mx-auto max-w-2xl px-6 pb-24">
-        <h1 className="mt-6 text-3xl font-black">Your recruiting profile</h1>
-        <p className="mt-2 text-zinc-400">
+        <h1 className="mt-6 text-3xl display">Your recruiting profile</h1>
+        <p className="mt-2 text-soft">
           A page you can send to college and club coaches: your ratings, pro match,
           best-fit positions and highlight film. It stays private until you publish it.
         </p>

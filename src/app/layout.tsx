@@ -1,25 +1,31 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { AnalyticsProvider } from "./providers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
+  axes: ["wdth"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "Playstyle Finder — Which pro do you play like?",
+  title: "Playstyle Finder — Same game. Different stage.",
   description:
-    "Answer a 3-minute questionnaire or upload your highlights. Our AI matches your playstyle to a professional player and shows you how to train like them.",
+    "Upload your highlights and meet the pro who plays like you. A free AI scouting report, head to head with the pros.",
 };
+
+// Runs before first paint so a saved dark theme never flashes light.
+// Light is the default; only an explicit saved choice switches it.
+const themeScript = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -27,8 +33,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className={`${archivo.variable} ${plexMono.variable} antialiased`}>
         <ClerkProvider appearance={{ theme: shadcn }}>
           <AnalyticsProvider>{children}</AnalyticsProvider>
         </ClerkProvider>

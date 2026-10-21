@@ -2,59 +2,128 @@
 @import "tw-animate-css";
 @import "@clerk/ui/themes/shadcn.css";
 
-@custom-variant dark (&:is(.dark *));
+/* "Scouting report" design system. Light is the default; the theme toggle sets
+   data-theme="dark" on <html>. Every color is a token so both themes swap
+   together — style components with the token utilities (bg-paper, text-ink,
+   border-rule, bg-cobalt…), never raw palette colors. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* shadcn/ui design tokens (zinc base). Components added via `npx shadcn add`. */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
+  --paper: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f1d30;
+  --ink-2: #2a3a52;
+  --soft: #5b6b7d;
+  --faint: #8794a3;
+  --rule: #d5dde5;
+  --rule-strong: #0f1d30;
+  --track: #e6ecf2;
+  --grid: rgba(30, 79, 216, 0.05);
+  --cobalt: #1e4fd8;
+  --cobalt-hover: #1943bb;
+  --on-cobalt: #ffffff;
+  --pen: #cf3528;
+  --good: #1d7a4a;
+  --bad: #c42b2b;
+  --warn: #9a5b00;
+  /* The film panel stays dark in both themes so the reel always stands out. */
+  --film: #0f1d30;
+  --film-2: #1d2f4a;
+  --film-ink: #e9eef6;
+  --film-soft: #93a4bd;
+  --film-rule: #26385a;
+  --film-accent: #8fb0ff;
+  --film-good: #5fd18f;
+  --film-bad: #ff7a6e;
+  color-scheme: light;
+
+  /* shadcn tokens (used by Clerk's themed components) mapped onto ours */
+  --radius: 0rem;
+  --background: var(--surface);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--cobalt);
+  --primary-foreground: var(--on-cobalt);
+  --secondary: var(--paper);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper);
+  --muted-foreground: var(--soft);
+  --accent: var(--paper);
+  --accent-foreground: var(--ink);
+  --destructive: var(--bad);
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--cobalt);
 }
 
-.dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
+[data-theme="dark"] {
+  --paper: #0a111d;
+  --surface: #111a29;
+  --ink: #e6edf7;
+  --ink-2: #c3cfdf;
+  --soft: #95a3b8;
+  --faint: #6b7a90;
+  --rule: #24324a;
+  --rule-strong: #3a4e70;
+  --track: #1d2a3e;
+  --grid: rgba(120, 160, 255, 0.055);
+  --cobalt: #5b8cff;
+  --cobalt-hover: #7aa2ff;
+  --on-cobalt: #06122b;
+  --pen: #ff7264;
+  --good: #52d18c;
+  --bad: #ff6b6b;
+  --warn: #f5b44a;
+  --film: #0d2252;
+  --film-2: #1b3a7d;
+  --film-ink: #eaf0ff;
+  --film-soft: #9fb3dc;
+  --film-rule: #24407d;
+  --film-accent: #9dbcff;
+  color-scheme: dark;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-soft: var(--soft);
+  --color-faint: var(--faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-track: var(--track);
+  --color-cobalt: var(--cobalt);
+  --color-cobalt-hover: var(--cobalt-hover);
+  --color-on-cobalt: var(--on-cobalt);
+  --color-pen: var(--pen);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --color-warn: var(--warn);
+  --color-film: var(--film);
+  --color-film-2: var(--film-2);
+  --color-film-ink: var(--film-ink);
+  --color-film-soft: var(--film-soft);
+  --color-film-rule: var(--film-rule);
+  --color-film-accent: var(--film-accent);
+  --color-film-good: var(--film-good);
+  --color-film-bad: var(--film-bad);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -77,9 +146,57 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-rule outline-cobalt/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-paper font-sans text-ink;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--cobalt);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Expanded heavy Archivo — the report's headline voice. */
+  .display {
+    font-family: var(--font-display);
+    font-stretch: 122%;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 0.95;
+  }
+  /* Typewriter section labels: "HEAD TO HEAD", "KEY MOMENTS". */
+  .label {
+    @apply font-mono text-xs font-semibold tracking-[0.12em] text-cobalt uppercase;
+  }
+  .card {
+    @apply border border-rule bg-surface;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center border border-rule-strong bg-surface px-6 py-3 font-semibold text-ink transition hover:border-cobalt hover:text-cobalt disabled:opacity-40;
+  }
+  .input {
+    @apply w-full border border-rule bg-surface p-3 text-ink placeholder:text-faint focus:border-cobalt focus:outline-none;
+  }
+  .offset-shadow {
+    box-shadow: 0.4rem 0.4rem 0 var(--cobalt);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

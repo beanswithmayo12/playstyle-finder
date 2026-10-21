@@ -47,13 +47,13 @@ export function BuyButton({
         disabled={loading}
         className={
           compact
-            ? "rounded-lg border border-emerald-500/60 px-4 py-2 text-sm font-semibold text-emerald-400 transition hover:bg-emerald-500/10 disabled:opacity-50"
-            : "rounded-lg bg-emerald-500 px-8 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50"
+            ? "rounded-lg border border-cobalt/60 px-4 py-2 text-sm font-semibold text-cobalt transition hover:bg-cobalt/10 disabled:opacity-50"
+            : "rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-50"
         }
       >
         {loading ? "Opening checkout…" : `Get the program — ${price}`}
       </button>
-      {error && <span className="text-xs text-red-400">{error}</span>}
+      {error && <span className="text-xs text-bad">{error}</span>}
     </div>
   );
 }

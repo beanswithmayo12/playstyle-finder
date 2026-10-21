@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
-import type { MetricVector } from "@/lib/metrics";
-import { RadarCompare } from "./radar-compare";
+import type { MetricKey, MetricVector } from "@/lib/metrics";
+import type { FilmMoment } from "@/lib/film-stats";
+import { HeadToHead, Scoreboard } from "./report";
+import { KeyMoments } from "./key-moments";
 
 export interface StudyClip {
   title: string;
@@ -17,6 +18,10 @@ export interface MatchDashboardProps {
   filmVerified: boolean;
   filmProcessing: boolean;
   athleteName: string;
+  positionLabel: string;
+  reportDate: string;
+  athleteOvr: number;
+  proOvr: number;
   matchPercent: number;
   pro: {
     knownAs: string;
@@ -27,11 +32,12 @@ export interface MatchDashboardProps {
   };
   athleteMetrics: MetricVector;
   proMetrics: MetricVector;
+  headToHeadKeys: MetricKey[];
   explanation: string;
   gaps: { label: string; delta: number }[];
   runnersUp: { knownAs: string; matchPercent: number }[];
   shareUrl: string;
-  filmSummary: { line: string; moments: number } | null;
+  film: { moments: FilmMoment[]; videoUrl: string | null; line: string } | null;
   practiceFocus: { metricLabel: string | null; title: string; detail: string }[];
   recruiting: { slug: string; published: boolean } | null;
 }
@@ -40,269 +46,228 @@ export function MatchDashboard(props: MatchDashboardProps) {
   const [revealed, setRevealed] = useState(!props.reveal);
   const [copied, setCopied] = useState(false);
 
-  // The reveal moment: brief suspense beat, then fade the match in.
+  // The reveal moment: brief suspense beat, then the report fades in.
   useEffect(() => {
     if (!revealed) {
-      const t = setTimeout(() => setRevealed(true), 1200);
+      const t = setTimeout(() => setRevealed(true), 900);
       return () => clearTimeout(t);
     }
   }, [revealed]);
 
   async function share() {
-    const text = `My playstyle is a ${props.matchPercent}% match with ${props.pro.knownAs} ⚽`;
+    const text = `Same game. Different stage. My playstyle is a ${props.matchPercent}% match with ${props.pro.knownAs}.`;
     if (navigator.share) {
       await navigator.share({ title: "Playstyle Finder", text, url: props.shareUrl }).catch(() => {});
     } else {
-      await navigator.clipboard.writeText(`${text} ${props.shareUrl}`);
+      await navigator.clipboard.writeText(`${text} ${props.shareUrl}`).catch(() => {});
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   }
 
+  const topGap = props.gaps[0];
+
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      <header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-sm font-semibold text-zinc-300">
-          ⚽ Playstyle Finder
-        </Link>
-        <UserButton />
-      </header>
+    <main className={`mx-auto max-w-6xl px-6 pb-24 transition-opacity duration-700 ${revealed ? "opacity-100" : "opacity-0"}`}>
+      {/* Title row */}
+      <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="label">Your pro twin</p>
+          <h1 className="display mt-2 text-4xl sm:text-5xl">Player report</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="font-mono text-sm text-soft">
+            {props.filmVerified ? "film-verified" : "self-reported"} · {props.reportDate}
+          </span>
+          <button onClick={share} className="btn-secondary px-4 py-2 text-sm">
+            {copied ? "Link copied ✓" : "Share my match"}
+          </button>
+        </div>
+      </div>
 
-      <div
-        className={`mx-auto max-w-3xl px-6 pb-24 transition-opacity duration-1000 ${revealed ? "opacity-100" : "opacity-0"}`}
-      >
-        {/* The verdict */}
-        <section className="py-10 text-center">
-          <p className="text-sm uppercase tracking-widest text-zinc-500">
-            {props.athleteName}, your playstyle match is
-          </p>
-          <h1 className="mt-3 text-5xl font-black tracking-tight text-emerald-400 sm:text-6xl">
-            {props.pro.knownAs}
-          </h1>
-          <p className="mt-3 text-lg text-zinc-300">{props.pro.archetype}</p>
-          <p className="mt-1 text-sm italic text-zinc-500">&ldquo;{props.pro.tagline}&rdquo;</p>
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <div className="inline-flex items-center gap-3 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-6 py-2">
-              <span className="text-2xl font-bold text-emerald-400">{props.matchPercent}%</span>
-              <span className="text-sm text-zinc-400">style match</span>
-            </div>
-            {props.filmVerified && (
-              <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-400">
-                🎬 Verified by film
-              </span>
-            )}
-          </div>
-          {props.filmProcessing && (
-            <p className="mt-4 text-sm text-zinc-500">
-              🎬 Your film analysis is running — this match updates automatically when it finishes.
-            </p>
-          )}
-          {!props.filmProcessing && (
-            <p className="mt-4 text-sm text-zinc-500">
-              {props.filmVerified ? "New footage? " : "Want a sharper read? "}
-              <Link href="/upload" className="text-sky-400 underline hover:text-sky-300">
-                Add game film
-              </Link>{" "}
-              {props.filmVerified ? "to refresh your verified match." : "for a film-verified match."}
-            </p>
-          )}
-          <div className="mt-6">
-            <button
-              onClick={share}
-              className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-emerald-500"
-            >
-              {copied ? "Link copied ✓" : "Share your match"}
-            </button>
-          </div>
-        </section>
+      <div className="mt-6">
+        <Scoreboard
+          athlete={{ name: props.athleteName, sub: props.positionLabel, ovr: props.athleteOvr }}
+          pro={{ name: props.pro.knownAs, sub: props.pro.archetype, ovr: props.proOvr }}
+          matchPercent={props.matchPercent}
+        />
+      </div>
 
-        {/* Radar comparison */}
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
-          <h2 className="mb-2 text-lg font-bold">Your profile vs. {props.pro.knownAs}</h2>
-          <RadarCompare
+      {props.filmProcessing && (
+        <p className="mt-3 font-mono text-sm text-soft">
+          Your film is being analyzed. This report updates automatically when it finishes.
+        </p>
+      )}
+
+      {/* Head to head + key moments */}
+      <div className="mt-6 grid items-start gap-5 lg:grid-cols-[1.1fr_1fr]">
+        <section className="card p-5">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="label">Head to head</h2>
+            <span className="font-mono text-xs text-soft">out of 99</span>
+          </div>
+          <HeadToHead
             athlete={props.athleteMetrics}
             pro={props.proMetrics}
+            keys={props.headToHeadKeys}
+            athleteName={props.athleteName}
             proName={props.pro.knownAs}
           />
         </section>
 
-        {/* The tactical why */}
-        <section className="mt-8">
-          <h2 className="mb-4 text-lg font-bold">The scouting report</h2>
-          <div className="space-y-4 whitespace-pre-line leading-relaxed text-zinc-300">
-            {props.explanation}
-          </div>
-        </section>
-
-        {/* Study footage */}
-        <section className="mt-10">
-          <h2 className="mb-1 text-lg font-bold">Study {props.pro.knownAs} like a pro</h2>
-          <p className="mb-4 text-sm text-zinc-500">{props.pro.styleSummary}</p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {props.pro.studyClips.map((clip) => (
-              <a
-                key={clip.title}
-                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(clip.youtubeQuery)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 transition hover:border-emerald-500/50"
-              >
-                <p className="font-semibold text-zinc-100">▶ {clip.title}</p>
-                <p className="mt-2 text-sm text-zinc-400">{clip.focusPoint}</p>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        {/* Film breakdown */}
-        {props.filmSummary && (
-          <section className="mt-10 rounded-2xl border border-sky-500/30 bg-sky-500/5 p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold">🎬 Your film breakdown</h2>
-                <p className="mt-1 text-sm text-zinc-300">{props.filmSummary.line}</p>
-                <p className="mt-1 text-xs text-zinc-500">
-                  {props.filmSummary.moments} tagged moments — tap any one to jump to it in your reel.
-                </p>
+        {props.film ? (
+          <KeyMoments
+            moments={props.film.moments}
+            videoUrl={props.film.videoUrl}
+            limit={5}
+            footer={
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <span className="text-film-soft">{props.film.line}</span>
+                <Link href="/film" className="font-semibold text-film-accent hover:underline">
+                  Full breakdown →
+                </Link>
               </div>
-              <Link
-                href="/film"
-                className="rounded-lg border border-sky-500/60 px-6 py-3 font-semibold text-sky-300 transition hover:bg-sky-500/10"
-              >
-                Watch the breakdown →
-              </Link>
+            }
+          />
+        ) : (
+          <section className="flex flex-col justify-between gap-6 bg-film p-6 text-film-ink">
+            <div>
+              <h2 className="font-mono text-xs font-semibold tracking-[0.12em] text-film-accent uppercase">Key moments</h2>
+              <p className="mt-4 text-xl font-bold">Add your highlight reel</p>
+              <p className="mt-2 text-film-soft">
+                We tag every take-on, pass and shot, rate whether it worked, and
+                let you jump straight to each one. Film also verifies your match.
+              </p>
             </div>
+            {!props.filmProcessing && (
+              <Link href="/upload" className="self-start bg-film-accent px-5 py-3 font-semibold text-film transition hover:opacity-90">
+                Upload highlights
+              </Link>
+            )}
           </section>
         )}
+      </div>
 
-        {/* Free team-practice focus */}
-        <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
-          <h2 className="text-lg font-bold">At team practice this week</h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            No extra training needed — try these at the practices you already go to.
-          </p>
-          <ul className="mt-4 space-y-3">
-            {props.practiceFocus.map((h) => (
-              <li key={h.title} className="flex items-start gap-3">
-                <span className="mt-0.5 w-24 shrink-0 truncate rounded-full border border-zinc-700 px-2 py-0.5 text-center text-[11px] text-zinc-400">
-                  {h.metricLabel ?? "Habit"}
-                </span>
-                <div>
-                  <p className="font-semibold text-zinc-100">{h.title}</p>
-                  <p className="text-sm text-zinc-400">{h.detail}</p>
-                </div>
+      {/* Scout's notes + study clips */}
+      <div className="mt-5 grid items-start gap-5 lg:grid-cols-[1.1fr_1fr]">
+        <section className="card p-5">
+          <h2 className="label">Scout&apos;s notes</h2>
+          <div className="mt-4 flex flex-wrap items-baseline gap-3">
+            <span className="display text-3xl">{props.pro.knownAs}</span>
+            <span className="font-mono text-lg font-semibold text-cobalt">{props.matchPercent}%</span>
+          </div>
+          {props.runnersUp.length > 0 && (
+            <p className="mt-2 text-soft">
+              Also: {props.runnersUp.map((r) => `${r.knownAs} ${r.matchPercent}%`).join(" · ")}
+            </p>
+          )}
+          <div className="mt-5 whitespace-pre-line border-l-[3px] border-ink pl-4 leading-relaxed text-ink-2">
+            {props.explanation}
+          </div>
+          {topGap && (
+            <p className="mt-4 font-mono text-sm text-pen">
+              ↳ priority: {topGap.label.toLowerCase()}. You&apos;re {Math.round(topGap.delta)} points behind.
+            </p>
+          )}
+        </section>
+
+        <section className="card p-5">
+          <h2 className="label">Study {props.pro.knownAs}</h2>
+          <p className="mt-3 text-sm text-soft">{props.pro.styleSummary}</p>
+          <ul className="mt-4 divide-y divide-rule border-y border-rule">
+            {props.pro.studyClips.map((clip) => (
+              <li key={clip.title}>
+                <a
+                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(clip.youtubeQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block py-3 transition hover:text-cobalt"
+                >
+                  <span className="font-semibold">▶ {clip.title}</span>
+                  <span className="mt-1 block text-sm text-soft">{clip.focusPoint}</span>
+                </a>
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-xs text-zinc-600">New focus every week, based on your biggest gaps.</p>
         </section>
+      </div>
 
-        {/* 2K-style build CTA */}
-        <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold">Build your 99 OVR player</h2>
-              <p className="mt-1 text-sm text-zinc-400">
-                Spend attribute points 2K-style on the player you want to become —
-                then see which pros play like your build.
-              </p>
-            </div>
-            <Link
-              href="/build"
-              className="rounded-lg border border-emerald-500/60 px-6 py-3 font-semibold text-emerald-400 transition hover:bg-emerald-500/10"
-            >
-              Open the builder →
-            </Link>
-          </div>
-        </section>
-
-        {/* Runners-up */}
-        {props.runnersUp.length > 0 && (
-          <section className="mt-10 rounded-xl border border-zinc-800 bg-zinc-900/30 p-5">
-            <p className="text-sm text-zinc-400">
-              You also share DNA with{" "}
-              {props.runnersUp.map((r, i) => (
-                <span key={r.knownAs}>
-                  {i > 0 && " and "}
-                  <span className="font-semibold text-zinc-200">{r.knownAs}</span> (
-                  {r.matchPercent}%)
+      {/* Training: team practice (free) + on your own (program) */}
+      <div className="mt-5 grid border border-rule bg-surface lg:grid-cols-2">
+        <section className="p-5">
+          <h2 className="label">At team practice · this week</h2>
+          <p className="mt-2 text-sm text-soft">No extra training. Try these at the practices you already go to.</p>
+          <ol className="mt-4 space-y-3">
+            {props.practiceFocus.map((h) => (
+              <li key={h.title} className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-3">
+                <span className="truncate border border-rule px-2 py-0.5 text-center font-mono text-[11px] text-soft">
+                  {h.metricLabel ?? "Habit"}
                 </span>
-              ))}
-              .
-            </p>
-          </section>
-        )}
-
-        {/* The gap → upsell bridge */}
-        <section className="mt-10 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6">
-          <h2 className="text-lg font-bold">
-            Your development gaps vs. {props.pro.knownAs}
-          </h2>
+                <span>
+                  <span className="font-semibold">{h.title}</span>
+                  <span className="block text-sm text-soft">{h.detail}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section className="border-t border-rule p-5 lg:border-t-0 lg:border-l">
+          <h2 className="label">On your own · close the gap</h2>
+          <p className="mt-2 text-sm text-soft">Where {props.pro.knownAs} is furthest ahead of you.</p>
           <div className="mt-4 space-y-3">
             {props.gaps.map((g) => (
-              <div key={g.label} className="flex items-center gap-3">
-                <span className="w-32 shrink-0 text-sm text-zinc-300">{g.label}</span>
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-800">
-                  <div
-                    className="h-2 rounded-full bg-emerald-500/70"
-                    style={{ width: `${Math.min(100, Math.max(8, 100 - g.delta))}%` }}
-                  />
-                </div>
-                <span className="w-10 text-right text-sm font-semibold text-emerald-400">
-                  −{Math.round(g.delta)}
+              <div key={g.label} className="grid grid-cols-[7rem_minmax(0,1fr)_3rem] items-center gap-3">
+                <span className="text-sm">{g.label}</span>
+                <span className="relative h-2.5 bg-track">
+                  <i className="absolute inset-y-0 left-0 bg-cobalt" style={{ width: `${Math.min(100, Math.max(6, 100 - g.delta))}%` }} />
                 </span>
+                <span className="text-right font-mono text-sm font-semibold text-pen">−{Math.round(g.delta)}</span>
               </div>
             ))}
           </div>
-          <p className="mt-5 text-sm text-zinc-400">
-            An 8-week program built around {props.pro.knownAs}&apos;s athletic and
-            tactical profile closes these exact gaps.
-          </p>
-          <Link
-            href="/plans"
-            className="mt-4 inline-block rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400"
-          >
-            See the program →
+          <Link href="/plans" className="btn-primary mt-5">
+            See the 8-week program →
           </Link>
         </section>
+      </div>
 
-        {/* Recruiting profile */}
-        <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold">Recruiting profile</h2>
-              <p className="mt-1 text-sm text-zinc-400">
-                {props.recruiting?.published
-                  ? "Your profile is live. Send the link to college and club coaches."
-                  : "One page for coaches: your ratings, best positions, pro match and film."}
-              </p>
-            </div>
-            <div className="flex gap-3">
-              {props.recruiting?.published && (
-                <Link
-                  href={`/p/${props.recruiting.slug}`}
-                  className="rounded-lg px-4 py-3 text-sm font-semibold text-zinc-300 underline hover:text-zinc-100"
-                >
-                  View
-                </Link>
-              )}
-              <Link
-                href="/profile"
-                className="rounded-lg border border-emerald-500/60 px-6 py-3 font-semibold text-emerald-400 transition hover:bg-emerald-500/10"
-              >
-                {props.recruiting ? "Edit profile" : "Build my profile →"}
+      {/* Builder + recruiting */}
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <section className="card flex flex-col justify-between gap-4 p-5">
+          <div>
+            <h2 className="label">Build your 99 OVR self</h2>
+            <p className="mt-2 text-soft">Spend attribute points on the player you want to become, then see which pros play like your build.</p>
+          </div>
+          <Link href="/build" className="btn-secondary self-start">Open the builder →</Link>
+        </section>
+        <section className="card flex flex-col justify-between gap-4 p-5">
+          <div>
+            <h2 className="label">Recruiting profile</h2>
+            <p className="mt-2 text-soft">
+              {props.recruiting?.published
+                ? "Your profile is live. Send the link to college and club coaches."
+                : "One page for coaches: your ratings, best positions, pro match and film."}
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/profile" className="btn-secondary">
+              {props.recruiting ? "Edit profile" : "Build my profile →"}
+            </Link>
+            {props.recruiting?.published && (
+              <Link href={`/p/${props.recruiting.slug}`} className="text-sm font-semibold text-cobalt hover:underline">
+                View
               </Link>
-            </div>
+            )}
           </div>
         </section>
-
-        <p className="mt-10 text-center text-sm text-zinc-600">
-          Think your game has changed?{" "}
-          <Link href="/quiz" className="text-zinc-400 underline hover:text-zinc-200">
-            Retake the analysis
-          </Link>
-        </p>
       </div>
+
+      <p className="mt-10 text-center text-sm text-soft">
+        Game changed?{" "}
+        <Link href="/upload" className="text-ink underline hover:text-cobalt">Upload new film</Link>
+        {" "}or{" "}
+        <Link href="/quiz" className="text-ink underline hover:text-cobalt">retake the quiz</Link>
+      </p>
     </main>
   );
 }

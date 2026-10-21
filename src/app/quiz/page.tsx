@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SiteHeader } from "@/components/site-header";
 import {
   FOOT_OPTIONS,
   LEVEL_OPTIONS,
@@ -89,19 +90,20 @@ export default function QuizPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-zinc-950 text-zinc-50">
-      <div className="h-1 w-full bg-zinc-800">
+    <main className="flex min-h-screen flex-col text-ink">
+      <SiteHeader width="max-w-xl" />
+      <div className="h-1 w-full bg-track">
         <div
-          className="h-1 bg-emerald-500 transition-all duration-300"
+          className="h-1 bg-cobalt transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 py-12">
-        <p className="mb-2 text-sm text-zinc-500">
+        <p className="mb-2 text-sm text-soft">
           Question {screen + 1} of {TOTAL_SCREENS}
         </p>
-        <h1 className="mb-8 text-2xl font-bold sm:text-3xl">{prompt}</h1>
+        <h1 className="mb-8 text-2xl leading-tight font-extrabold [font-stretch:110%] sm:text-3xl">{prompt}</h1>
 
         {isText ? (
           <div className="flex flex-col gap-4">
@@ -110,12 +112,12 @@ export default function QuizPage() {
               onChange={(e) => setTextDraft(e.target.value)}
               placeholder={placeholder}
               rows={5}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 p-4 text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
+              className="w-full rounded-lg border border-rule bg-surface p-4 text-ink placeholder:text-faint focus:border-cobalt focus:outline-none"
             />
             <button
               onClick={() => textDraft.trim().length >= 10 && answerTactical(textDraft.trim())}
               disabled={textDraft.trim().length < 10}
-              className="self-end rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-40"
+              className="self-end rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
             >
               {screen + 1 === TOTAL_SCREENS ? "Get my analysis" : "Continue"}
             </button>
@@ -126,7 +128,7 @@ export default function QuizPage() {
               <button
                 key={label}
                 onClick={() => selectOption(label)}
-                className="rounded-lg border border-zinc-700 bg-zinc-900 px-5 py-4 text-left text-zinc-100 transition hover:border-emerald-500 hover:bg-zinc-800"
+                className="rounded-lg border border-rule bg-surface px-5 py-4 text-left text-ink transition hover:border-cobalt hover:bg-cobalt/5"
               >
                 {label}
               </button>
@@ -137,7 +139,7 @@ export default function QuizPage() {
         {screen > 0 && (
           <button
             onClick={() => setScreen((s) => s - 1)}
-            className="mt-8 self-start text-sm text-zinc-500 transition hover:text-zinc-300"
+            className="mt-8 self-start text-sm text-soft transition hover:text-cobalt"
           >
             ← Back
           </button>

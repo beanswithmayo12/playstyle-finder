@@ -86,23 +86,23 @@ export function ProgramView({
   return (
     <div>
       {justPurchased && (
-        <div className="mt-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-300">
+        <div className="mt-2 rounded-xl border border-cobalt/40 bg-cobalt/10 p-4 text-sm text-cobalt">
           You&apos;re in. Eight weeks from now your game looks different — start with Week 1, Day 1.
         </div>
       )}
 
-      <h1 className="mt-6 text-3xl font-black">{title}</h1>
-      <p className="mt-1 text-zinc-400">Modeled on {proName}&apos;s athletic and tactical profile</p>
+      <h1 className="mt-6 text-3xl display">{title}</h1>
+      <p className="mt-1 text-soft">Modeled on {proName}&apos;s athletic and tactical profile</p>
 
       <div className="mt-5 flex items-center gap-3">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-800">
-          <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} />
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-track">
+          <div className="h-2 rounded-full bg-cobalt transition-all" style={{ width: `${progress}%` }} />
         </div>
-        <span className="text-sm font-semibold text-emerald-400">{progress}%</span>
+        <span className="text-sm font-semibold text-cobalt">{progress}%</span>
       </div>
 
       {/* Solo vs team-practice tracks */}
-      <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-1">
+      <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl border border-rule bg-surface p-1">
         {([
           ["SOLO", "On your own", "Sessions to do by yourself"],
           ["TEAM", "At team practice", "Habits to bring to practice"],
@@ -114,11 +114,11 @@ export function ProgramView({
               setOpen(null);
             }}
             className={`rounded-lg px-4 py-3 text-left transition ${
-              track === value ? "bg-zinc-800 text-zinc-50" : "text-zinc-400 hover:text-zinc-200"
+              track === value ? "bg-track text-ink" : "text-soft hover:text-cobalt"
             }`}
           >
             <span className="block text-sm font-semibold">{label}</span>
-            <span className="block text-xs text-zinc-500">{sub}</span>
+            <span className="block text-xs text-soft">{sub}</span>
           </button>
         ))}
       </div>
@@ -134,10 +134,10 @@ export function ProgramView({
               onClick={() => setWeek(w)}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 w === week
-                  ? "bg-emerald-500 text-zinc-950"
+                  ? "bg-cobalt text-on-cobalt"
                   : wDone
-                    ? "border border-emerald-500/40 text-emerald-400"
-                    : "border border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                    ? "border border-cobalt/40 text-cobalt"
+                    : "border border-rule text-ink-2 hover:border-cobalt"
               }`}
             >
               W{w}{wDone ? " ✓" : ""}
@@ -147,7 +147,7 @@ export function ProgramView({
       </div>
 
       {weekTheme && (
-        <p className="mt-4 text-sm uppercase tracking-widest text-zinc-500">
+        <p className="mt-4 text-sm uppercase tracking-widest text-soft">
           Week {week}: {weekTheme}
         </p>
       )}
@@ -155,7 +155,7 @@ export function ProgramView({
       {/* Sessions */}
       <div className="mt-4 space-y-3">
         {weekSessions.length === 0 && (
-          <p className="rounded-xl border border-zinc-800 p-4 text-sm text-zinc-500">
+          <p className="rounded-xl border border-rule p-4 text-sm text-soft">
             Nothing here yet for this week.
           </p>
         )}
@@ -163,47 +163,47 @@ export function ProgramView({
           const isOpen = open === s.id;
           const isDone = done.has(s.id);
           return (
-            <div key={s.id} className={`rounded-xl border ${isDone ? "border-emerald-500/40 bg-emerald-500/5" : "border-zinc-800 bg-zinc-900/50"}`}>
+            <div key={s.id} className={`rounded-xl border ${isDone ? "border-cobalt/40 bg-cobalt/5" : "border-rule bg-surface"}`}>
               <div className="flex items-center gap-3 p-4">
                 <button
                   onClick={() => toggle(s.id)}
                   aria-label={isDone ? "Mark incomplete" : "Mark complete"}
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition ${
-                    isDone ? "border-emerald-500 bg-emerald-500 text-zinc-950" : "border-zinc-600 hover:border-emerald-500"
+                    isDone ? "border-cobalt bg-cobalt text-on-cobalt" : "border-rule hover:border-cobalt"
                   }`}
                 >
                   {isDone ? "✓" : ""}
                 </button>
                 <button onClick={() => setOpen(isOpen ? null : s.id)} className="flex flex-1 items-center justify-between text-left">
                   <div>
-                    <p className={`font-semibold ${isDone ? "text-zinc-400 line-through" : ""}`}>
+                    <p className={`font-semibold ${isDone ? "text-soft line-through" : ""}`}>
                       {s.track === "TEAM" ? s.title : `Day ${s.day}: ${s.title}`}
                     </p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-soft">
                       {s.track === "TEAM"
                         ? `${s.content.blocks.length} challenges · check off when you've done them all`
                         : `${s.focus} · ${s.content.blocks.length} drills`}
                     </p>
                   </div>
-                  <span className="text-zinc-500">{isOpen ? "▴" : "▾"}</span>
+                  <span className="text-soft">{isOpen ? "▴" : "▾"}</span>
                 </button>
               </div>
 
               {isOpen && (
-                <div className="border-t border-zinc-800 p-4">
-                  <p className="mb-4 text-sm italic text-zinc-400">{s.content.phaseNote}</p>
+                <div className="border-t border-rule p-4">
+                  <p className="mb-4 text-sm italic text-soft">{s.content.phaseNote}</p>
                   <ol className="space-y-4">
                     {s.content.blocks.map((b, i) => (
-                      <li key={i} className="rounded-lg bg-zinc-950/60 p-4">
+                      <li key={i} className="rounded-lg bg-paper p-4">
                         <div className="flex items-baseline justify-between gap-3">
-                          <p className="font-semibold text-zinc-100">
+                          <p className="font-semibold text-ink">
                             {i + 1}. {b.name}
                           </p>
-                          <p className="shrink-0 text-sm font-semibold text-emerald-400">
+                          <p className="shrink-0 text-sm font-semibold text-cobalt">
                             {b.kind === "habit" ? b.reps : `${b.sets} × ${b.reps}`}
                           </p>
                         </div>
-                        <ul className="mt-2 space-y-1 text-sm text-zinc-400">
+                        <ul className="mt-2 space-y-1 text-sm text-soft">
                           {b.cues.map((c) => (
                             <li key={c}>• {c}</li>
                           ))}
@@ -213,7 +213,7 @@ export function ProgramView({
                             href={`https://www.youtube.com/results?search_query=${encodeURIComponent(b.videoQuery)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-2 inline-block text-xs text-zinc-500 underline hover:text-zinc-300"
+                            className="mt-2 inline-block text-xs text-soft underline hover:text-cobalt"
                           >
                             ▶ Watch technique reference
                           </a>

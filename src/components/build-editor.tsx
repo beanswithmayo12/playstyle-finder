@@ -73,22 +73,22 @@ export function BuildEditor({
     <div>
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black">Build your player</h1>
-          <p className="mt-1 text-zinc-400">
+          <h1 className="text-3xl display">Build your player</h1>
+          <p className="mt-1 text-soft">
             Spend your attribute points like a 2K build — max your signature
             stats, live with the tradeoffs.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-5 py-3 text-center">
-            <p className="text-3xl font-black text-emerald-400">{overall}</p>
-            <p className="text-xs uppercase tracking-widest text-zinc-400">OVR</p>
+          <div className="rounded-xl border border-cobalt/40 bg-cobalt/10 px-5 py-3 text-center">
+            <p className="text-3xl display text-cobalt">{overall}</p>
+            <p className="text-xs uppercase tracking-widest text-soft">OVR</p>
           </div>
-          <div className="rounded-xl border border-zinc-700 px-5 py-3 text-center">
-            <p className={`text-3xl font-black ${remaining === 0 ? "text-zinc-500" : "text-zinc-100"}`}>
+          <div className="rounded-xl border border-rule px-5 py-3 text-center">
+            <p className={`text-3xl display ${remaining === 0 ? "text-soft" : "text-ink"}`}>
               {remaining}
             </p>
-            <p className="text-xs uppercase tracking-widest text-zinc-400">Points left</p>
+            <p className="text-xs uppercase tracking-widest text-soft">Points left</p>
           </div>
         </div>
       </div>
@@ -101,10 +101,10 @@ export function BuildEditor({
           return (
             <div key={k}>
               <div className="flex items-baseline justify-between">
-                <span className="text-sm font-medium text-zinc-300">{METRIC_LABELS[k]}</span>
+                <span className="text-sm font-medium text-ink-2">{METRIC_LABELS[k]}</span>
                 <span className="text-sm">
-                  <span className={`font-bold ${val >= 90 ? "text-emerald-400" : "text-zinc-100"}`}>{val}</span>
-                  <span className={`ml-2 text-xs ${diff >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+                  <span className={`font-bold ${val >= 90 ? "text-cobalt" : "text-ink"}`}>{val}</span>
+                  <span className={`ml-2 text-xs ${diff >= 0 ? "text-cobalt" : "text-bad"}`}>
                     {diff >= 0 ? "+" : ""}{diff} vs you
                   </span>
                 </span>
@@ -115,7 +115,7 @@ export function BuildEditor({
                 max={BUILD_MAX}
                 value={val}
                 onChange={(e) => setStat(k, Number(e.target.value))}
-                className="mt-1 w-full accent-emerald-500"
+                className="mt-1 w-full accent-cobalt"
               />
             </div>
           );
@@ -126,17 +126,17 @@ export function BuildEditor({
         <button
           onClick={save}
           disabled={saving}
-          className="rounded-lg bg-emerald-500 px-8 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50"
+          className="rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-50"
         >
           {saving ? "Matching your build…" : "Lock in build → find my pro comps"}
         </button>
         <button
           onClick={() => { setBuild(defaultBuild()); setMatches(null); }}
-          className="text-sm text-zinc-500 underline hover:text-zinc-300"
+          className="text-sm text-soft underline hover:text-cobalt"
         >
           Reset
         </button>
-        {error && <span className="text-sm text-red-400">{error}</span>}
+        {error && <span className="text-sm text-bad">{error}</span>}
       </div>
 
       {matches && (
@@ -146,33 +146,33 @@ export function BuildEditor({
             {matches.map((m, i) => (
               <div
                 key={m.knownAs}
-                className={`rounded-xl border p-5 ${i === 0 ? "border-emerald-500/50 bg-emerald-500/5" : "border-zinc-800 bg-zinc-900/50"}`}
+                className={`rounded-xl border p-5 ${i === 0 ? "border-cobalt/50 bg-cobalt/5" : "border-rule bg-surface"}`}
               >
-                <p className="text-2xl font-black text-emerald-400">{m.matchPercent}%</p>
+                <p className="text-2xl display text-cobalt">{m.matchPercent}%</p>
                 <p className="mt-1 font-bold">{m.knownAs}</p>
-                <p className="text-sm text-zinc-400">{m.archetype}</p>
-                <p className="mt-2 text-xs italic text-zinc-500">&ldquo;{m.tagline}&rdquo;</p>
+                <p className="text-sm text-soft">{m.archetype}</p>
+                <p className="mt-2 text-xs italic text-soft">&ldquo;{m.tagline}&rdquo;</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <div className="mt-8 rounded-2xl border border-rule bg-surface p-6">
             <h3 className="mb-2 font-bold">You today vs. your build</h3>
             <RadarCompare athlete={quizMetrics} pro={build} proName={`Your ${overall} OVR build`} />
           </div>
 
           {gaps.length > 0 && (
-            <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6">
+            <div className="mt-6 rounded-2xl border border-cobalt/30 bg-cobalt/5 p-6">
               <h3 className="font-bold">The road from you to your build runs through:</h3>
-              <p className="mt-2 text-zinc-300">
+              <p className="mt-2 text-ink-2">
                 {gaps.map((g) => `${METRIC_LABELS[g.key]} (+${g.diff})`).join(" · ")}
               </p>
-              <p className="mt-3 text-sm text-zinc-400">
+              <p className="mt-3 text-sm text-soft">
                 That&apos;s exactly what an 8-week pro program trains.
               </p>
               <Link
                 href="/plans"
-                className="mt-4 inline-block rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400"
+                className="mt-4 inline-block rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
               >
                 Close the gap →
               </Link>

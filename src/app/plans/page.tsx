@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { METRIC_KEYS, type MetricKey, type MetricVector } from "@/lib/metrics";
 import { METRIC_LABELS } from "@/components/metric-labels";
 import { BuyButton } from "@/components/buy-button";
+import { SiteHeader } from "@/components/site-header";
 import { PROGRAMS } from "@/data/programs";
 
 export const dynamic = "force-dynamic";
@@ -57,32 +58,27 @@ export default async function PlansPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      <header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-        <Link href="/dashboard" className="text-sm font-semibold text-zinc-300">
-          ← Back to your match
-        </Link>
-        <span className="text-sm text-zinc-500">⚽ Playstyle Finder</span>
-      </header>
+    <main className="min-h-screen text-ink">
+      <SiteHeader back={{ href: "/dashboard", label: "Back to your match" }} width="max-w-3xl" />
 
       <div className="mx-auto max-w-3xl px-6 pb-24">
         {featured ? (
-          <section className="mt-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-8">
-            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
+          <section className="mt-6 rounded-2xl border border-cobalt/40 bg-cobalt/5 p-8">
+            <p className="text-sm font-semibold uppercase tracking-widest text-cobalt">
               Built for your match
             </p>
-            <h1 className="mt-2 text-3xl font-black">{featured.title}</h1>
-            <p className="mt-3 text-zinc-300">{featured.description}</p>
+            <h1 className="mt-2 text-3xl display">{featured.title}</h1>
+            <p className="mt-3 text-ink-2">{featured.description}</p>
 
             {(() => {
               const targets = PROGRAMS.find((p) => p.slug === featured.slug)?.targets ?? [];
               const bullets = gapBullets(targets);
               return bullets.length > 0 ? (
                 <div className="mt-5">
-                  <p className="font-semibold text-zinc-100">
+                  <p className="font-semibold text-ink">
                     This program closes YOUR gaps vs. {featured.proPlayer.knownAs}:
                   </p>
-                  <ul className="mt-2 space-y-1 text-zinc-300">
+                  <ul className="mt-2 space-y-1 text-ink-2">
                     {bullets.map((b) => (
                       <li key={b}>✓ {b}</li>
                     ))}
@@ -92,23 +88,23 @@ export default async function PlansPage() {
             })()}
 
             {/* Week 1 preview — real content, unlocked */}
-            <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/60 p-5">
+            <div className="mt-6 rounded-xl border border-rule bg-paper p-5">
               <p className="mb-3 font-semibold">
                 Week 1, fully open — see exactly what you&apos;re buying:
               </p>
-              <ul className="space-y-2 text-sm text-zinc-300">
+              <ul className="space-y-2 text-sm text-ink-2">
                 {featured.sessions.map((s) => (
                   <li key={s.id} className="flex justify-between gap-4">
                     <span>Day {s.day}: {s.title}</span>
-                    <span className="shrink-0 text-zinc-500">{s.focus}</span>
+                    <span className="shrink-0 text-soft">{s.focus}</span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-sm text-zinc-500">
+              <p className="mt-4 text-sm text-soft">
                 Weeks 2–8: Build → Peak → Integration phases. 32 solo sessions total,
                 every drill with sets, reps, coaching cues, and video reference.
               </p>
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className="mt-2 text-sm text-soft">
                 Plus a team-practice track: weekly challenges to bring to the practices
                 you already attend, so your team training builds the same habits.
               </p>
@@ -118,23 +114,23 @@ export default async function PlansPage() {
               {owned.has(featured.id) ? (
                 <Link
                   href={`/program/${featured.id}`}
-                  className="rounded-lg bg-emerald-500 px-8 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400"
+                  className="rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
                 >
                   Open your program →
                 </Link>
               ) : (
                 <BuyButton planId={featured.id} priceCents={featured.priceCents} />
               )}
-              <span className="text-sm text-zinc-500">
+              <span className="text-sm text-soft">
                 14-day money-back guarantee · Lifetime access
               </span>
             </div>
           </section>
         ) : (
           <section className="mt-6 text-center">
-            <h1 className="text-3xl font-black">8-Week Pro Programs</h1>
-            <p className="mt-3 text-zinc-400">
-              <Link href="/quiz" className="text-emerald-400 underline">
+            <h1 className="text-3xl display">8-Week Pro Programs</h1>
+            <p className="mt-3 text-soft">
+              <Link href="/quiz" className="text-cobalt underline">
                 Take the free analysis
               </Link>{" "}
               to get the program matched to your playstyle.
@@ -144,18 +140,18 @@ export default async function PlansPage() {
 
         {rest.length > 0 && (
           <section className="mt-12">
-            <h2 className="mb-4 text-lg font-bold text-zinc-300">
+            <h2 className="mb-4 text-lg font-bold text-ink-2">
               {featured ? "Other programs" : "All programs"}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {rest.map((plan) => (
-                <div key={plan.id} className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-                  <p className="text-sm text-zinc-500">{plan.proPlayer.knownAs}</p>
+                <div key={plan.id} className="flex flex-col rounded-xl border border-rule bg-surface p-5">
+                  <p className="text-sm text-soft">{plan.proPlayer.knownAs}</p>
                   <h3 className="mt-1 font-bold">{plan.title}</h3>
-                  <p className="mt-2 flex-1 text-sm text-zinc-400">{plan.description}</p>
+                  <p className="mt-2 flex-1 text-sm text-soft">{plan.description}</p>
                   <div className="mt-4">
                     {owned.has(plan.id) ? (
-                      <Link href={`/program/${plan.id}`} className="text-sm font-semibold text-emerald-400">
+                      <Link href={`/program/${plan.id}`} className="text-sm font-semibold text-cobalt">
                         Open program →
                       </Link>
                     ) : (

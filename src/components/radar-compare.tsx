@@ -29,17 +29,17 @@ export function RadarCompare({
   return (
     <ResponsiveContainer width="100%" height={380}>
       <RadarChart data={data} outerRadius="72%">
-        <PolarGrid stroke="#3f3f46" />
-        <PolarAngleAxis dataKey="metric" tick={{ fill: "#a1a1aa", fontSize: 11 }} />
+        <PolarGrid stroke="var(--rule)" />
+        <PolarAngleAxis dataKey="metric" tick={{ fill: "var(--soft)", fontSize: 11 }} />
         <Radar
           name={proName}
           dataKey="pro"
-          stroke="#71717a"
-          fill="#71717a"
+          stroke="var(--cobalt)"
+          fill="var(--cobalt)"
           fillOpacity={0.25}
         />
-        <Radar name="You" dataKey="you" stroke="#10b981" fill="#10b981" fillOpacity={0.35} />
-        <Legend wrapperStyle={{ color: "#a1a1aa", fontSize: 12 }} />
+        <Radar name="You" dataKey="you" stroke="var(--ink)" fill="var(--ink)" fillOpacity={0.3} />
+        <Legend wrapperStyle={{ color: "var(--soft)", fontSize: 12 }} />
       </RadarChart>
     </ResponsiveContainer>
   );

@@ -11,6 +11,7 @@ import { statLine } from "@/lib/film-stats";
 import { FOOT_OPTIONS, LEVEL_OPTIONS, POSITION_OPTIONS } from "@/data/quiz";
 import { METRIC_LABELS } from "@/components/metric-labels";
 import { FilmBreakdown } from "@/components/film-breakdown";
+import { SiteHeader } from "@/components/site-header";
 
 export const dynamic = "force-dynamic";
 
@@ -83,110 +84,113 @@ export default async function PlayerProfilePage({
   ].filter(Boolean);
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      {!profile.published && (
-        <div className="bg-amber-500/15 px-6 py-3 text-center text-sm text-amber-200">
-          Preview — only you can see this.{" "}
-          <Link href="/profile" className="font-semibold underline">
-            Publish it
-          </Link>{" "}
-          to share the link with coaches.
-        </div>
-      )}
-      <div className="mx-auto max-w-3xl px-6 pb-24 pt-10">
-        {/* Identity */}
-        <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8">
-          <p className="text-xs uppercase tracking-widest text-zinc-500">Player profile</p>
-          <h1 className="mt-2 text-4xl font-black">{athlete?.displayName ?? "Player"}</h1>
-          <p className="mt-2 text-zinc-300">{facts.join(" · ")}</p>
-          {(profile.team || profile.location) && (
-            <p className="mt-1 text-zinc-500">
-              {[profile.team, profile.location].filter(Boolean).join(" · ")}
-            </p>
-          )}
-          {match && (
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm">
-                Plays like <span className="font-bold text-emerald-400">{match.proPlayer.knownAs}</span>{" "}
-                · {displayMatchPercent(match.similarity)}%
-              </span>
-              <span className="text-sm text-zinc-400">{match.proPlayer.archetype}</span>
-            </div>
-          )}
-          {profile.contactEmail && (
-            <a
-              href={`mailto:${profile.contactEmail}`}
-              className="mt-6 inline-block rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400"
-            >
-              Contact
-            </a>
-          )}
-        </section>
-
-        {profile.bio && (
-          <section className="mt-8">
-            <h2 className="mb-2 text-lg font-bold">About</h2>
-            <p className="whitespace-pre-line leading-relaxed text-zinc-300">{profile.bio}</p>
-          </section>
-        )}
-
-        {fits.length > 0 && (
-          <section className="mt-8">
-            <h2 className="mb-3 text-lg font-bold">Best-fit positions</h2>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {fits.map((f) => (
-                <div key={f.position} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-                  <p className="font-semibold">{label(POSITION_OPTIONS, f.position)}</p>
-                  <p className="text-2xl font-black text-emerald-400">{f.matchPercent}%</p>
-                  <p className="text-xs text-zinc-500">closest pro: {f.closestPro}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {metrics && (
-          <section className="mt-8">
-            <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="text-lg font-bold">Attribute ratings</h2>
-              <span className={`text-xs ${filmVerified ? "text-sky-400" : "text-zinc-500"}`}>
-                {filmVerified ? "🎬 Verified by film" : "Self-reported (questionnaire)"}
-              </span>
-            </div>
-            <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-              {METRIC_KEYS.map((k) => (
-                <div key={k}>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-300">{METRIC_LABELS[k]}</span>
-                    <span className="font-semibold">{metrics[k]}</span>
-                  </div>
-                  <div className="mt-1 h-2 rounded-full bg-zinc-800">
-                    <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${metrics[k]}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {film && (
-          <section className="mt-10">
-            <h2 className="text-lg font-bold">Highlight film</h2>
-            {film.stats.length > 0 && <p className="mb-4 mt-1 text-sm text-zinc-400">{statLine(film.stats)}</p>}
-            <FilmBreakdown stats={film.stats} moments={film.moments} videoUrl={film.videoUrl} />
-          </section>
-        )}
-
-        <footer className="mt-12 border-t border-zinc-900 pt-6 text-center text-xs text-zinc-600">
-          Ratings are AI estimates from game film and a player questionnaire — a starting point
-          for scouting, not an official evaluation.
-          <div className="mt-4">
-            <Link href="/" className="text-zinc-400 underline hover:text-zinc-200">
-              Find which pro you play like — free
-            </Link>
+    <>
+      <SiteHeader width="max-w-3xl" />
+      <main className="min-h-screen text-ink">
+        {!profile.published && (
+          <div className="bg-warn/10 px-6 py-3 text-center text-sm text-warn">
+            Preview — only you can see this.{" "}
+            <Link href="/profile" className="font-semibold underline">
+              Publish it
+            </Link>{" "}
+            to share the link with coaches.
           </div>
-        </footer>
-      </div>
-    </main>
+        )}
+        <div className="mx-auto max-w-3xl px-6 pb-24 pt-10">
+          {/* Identity */}
+          <section className="rounded-3xl border border-rule bg-surface p-6 sm:p-8">
+            <p className="text-xs uppercase tracking-widest text-soft">Player profile</p>
+            <h1 className="mt-2 text-4xl display">{athlete?.displayName ?? "Player"}</h1>
+            <p className="mt-2 text-ink-2">{facts.join(" · ")}</p>
+            {(profile.team || profile.location) && (
+              <p className="mt-1 text-soft">
+                {[profile.team, profile.location].filter(Boolean).join(" · ")}
+              </p>
+            )}
+            {match && (
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <span className="rounded-full border border-cobalt/40 bg-cobalt/10 px-4 py-2 text-sm">
+                  Plays like <span className="font-bold text-cobalt">{match.proPlayer.knownAs}</span>{" "}
+                  · {displayMatchPercent(match.similarity)}%
+                </span>
+                <span className="text-sm text-soft">{match.proPlayer.archetype}</span>
+              </div>
+            )}
+            {profile.contactEmail && (
+              <a
+                href={`mailto:${profile.contactEmail}`}
+                className="mt-6 inline-block rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
+              >
+                Contact
+              </a>
+            )}
+          </section>
+
+          {profile.bio && (
+            <section className="mt-8">
+              <h2 className="mb-2 text-lg font-bold">About</h2>
+              <p className="whitespace-pre-line leading-relaxed text-ink-2">{profile.bio}</p>
+            </section>
+          )}
+
+          {fits.length > 0 && (
+            <section className="mt-8">
+              <h2 className="mb-3 text-lg font-bold">Best-fit positions</h2>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {fits.map((f) => (
+                  <div key={f.position} className="rounded-xl border border-rule bg-surface p-4">
+                    <p className="font-semibold">{label(POSITION_OPTIONS, f.position)}</p>
+                    <p className="text-2xl display text-cobalt">{f.matchPercent}%</p>
+                    <p className="text-xs text-soft">closest pro: {f.closestPro}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {metrics && (
+            <section className="mt-8">
+              <div className="mb-3 flex items-baseline justify-between">
+                <h2 className="text-lg font-bold">Attribute ratings</h2>
+                <span className={`text-xs ${filmVerified ? "text-cobalt" : "text-soft"}`}>
+                  {filmVerified ? "Verified by film" : "Self-reported (questionnaire)"}
+                </span>
+              </div>
+              <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+                {METRIC_KEYS.map((k) => (
+                  <div key={k}>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-2">{METRIC_LABELS[k]}</span>
+                      <span className="font-semibold">{metrics[k]}</span>
+                    </div>
+                    <div className="mt-1 h-2 rounded-full bg-track">
+                      <div className="h-2 rounded-full bg-cobalt" style={{ width: `${metrics[k]}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {film && (
+            <section className="mt-10">
+              <h2 className="text-lg font-bold">Highlight film</h2>
+              {film.stats.length > 0 && <p className="mb-4 mt-1 text-sm text-soft">{statLine(film.stats)}</p>}
+              <FilmBreakdown stats={film.stats} moments={film.moments} videoUrl={film.videoUrl} />
+            </section>
+          )}
+
+          <footer className="mt-12 border-t border-rule pt-6 text-center text-xs text-faint">
+            Ratings are AI estimates from game film and a player questionnaire — a starting point
+            for scouting, not an official evaluation.
+            <div className="mt-4">
+              <Link href="/" className="text-soft underline hover:text-cobalt">
+                Find which pro you play like — free
+              </Link>
+            </div>
+          </footer>
+        </div>
+      </main>
+    </>
   );
 }

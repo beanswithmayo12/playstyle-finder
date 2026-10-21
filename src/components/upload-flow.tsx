@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
 import { POSITION_OPTIONS } from "@/data/quiz";
 import { clearPendingReel, loadPendingReel } from "@/lib/pending-reel";
+import { SiteHeader } from "@/components/site-header";
 import { VideoDropzone, reelContentType } from "./video-dropzone";
 
 type Stage = "form" | "uploading" | "analyzing" | "error";
@@ -123,24 +124,15 @@ export function UploadFlow({
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-zinc-950 text-zinc-50">
-      <header className="mx-auto flex w-full max-w-xl items-center justify-between px-6 py-5">
-        <Link href="/" className="text-sm font-semibold text-zinc-300">
-          ⚽ Playstyle Finder
-        </Link>
-        {signedIn && (
-          <Link href="/dashboard" className="text-sm text-zinc-500 hover:text-zinc-300">
-            Dashboard
-          </Link>
-        )}
-      </header>
+    <main className="flex min-h-screen flex-col text-ink">
+      <SiteHeader width="max-w-xl" />
 
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 pb-16">
         {!signedIn ? (
           <div className="flex flex-col items-center gap-6 text-center">
             <div>
-              <h1 className="text-3xl font-bold">Your film is ready to scout.</h1>
-              <p className="mt-3 text-zinc-400">
+              <h1 className="display text-4xl">Your film is ready to scout.</h1>
+              <p className="mt-3 text-soft">
                 Create your free account and we&apos;ll analyze your reel and reveal
                 which professional player your game matches.
               </p>
@@ -149,38 +141,38 @@ export function UploadFlow({
           </div>
         ) : stage === "form" || stage === "error" ? (
           <>
-            <h1 className="text-3xl font-bold">Scout my film</h1>
-            <p className="mt-3 text-zinc-400">
+            <h1 className="display text-4xl">Scout my film</h1>
+            <p className="mt-3 text-soft">
               Tell us where you play and how to spot you, and we&apos;ll do the rest.
             </p>
 
             <div className="mt-8 space-y-5">
               {file ? (
-                <div className="flex items-center justify-between gap-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-4">
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-cobalt/40 bg-cobalt/5 p-4">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">🎬 {file.name}</p>
-                    <p className="text-sm text-zinc-500">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                    <p className="truncate font-semibold">{file.name}</p>
+                    <p className="text-sm text-soft">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
                   </div>
                   <button
                     onClick={() => {
                       setFile(null);
                       clearPendingReel();
                     }}
-                    className="shrink-0 text-sm text-zinc-400 underline hover:text-zinc-200"
+                    className="shrink-0 text-sm text-soft underline hover:text-cobalt"
                   >
                     Change
                   </button>
                 </div>
               ) : (
-                <VideoDropzone onFile={setFile} compact />
+                <VideoDropzone onFile={setFile} />
               )}
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-zinc-300">Your position</span>
+                <span className="mb-2 block text-sm font-medium text-ink-2">Your position</span>
                 <select
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-zinc-100 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-rule bg-surface p-3 text-ink focus:border-cobalt focus:outline-none"
                 >
                   <option value="" disabled>
                     Where do you play most often?
@@ -195,36 +187,36 @@ export function UploadFlow({
 
               <div className="grid grid-cols-2 gap-4">
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-zinc-300">Jersey color</span>
+                  <span className="mb-2 block text-sm font-medium text-ink-2">Jersey color</span>
                   <input
                     value={jerseyColor}
                     onChange={(e) => setJerseyColor(e.target.value)}
                     placeholder="e.g. red with white stripes"
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
+                    className="w-full rounded-lg border border-rule bg-surface p-3 text-ink placeholder:text-faint focus:border-cobalt focus:outline-none"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-zinc-300">Jersey number</span>
+                  <span className="mb-2 block text-sm font-medium text-ink-2">Jersey number</span>
                   <input
                     value={jerseyNumber}
                     onChange={(e) => setJerseyNumber(e.target.value)}
                     placeholder="e.g. 10"
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
+                    className="w-full rounded-lg border border-rule bg-surface p-3 text-ink placeholder:text-faint focus:border-cobalt focus:outline-none"
                   />
                 </label>
               </div>
 
-              {error && <p className="text-sm text-red-400">{error}</p>}
+              {error && <p className="text-sm text-bad">{error}</p>}
               <button
                 onClick={start}
                 disabled={!ready}
-                className="w-full rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-40"
+                className="w-full rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
               >
                 Upload &amp; analyze my film
               </button>
-              <p className="text-center text-sm text-zinc-500">
+              <p className="text-center text-sm text-soft">
                 No highlights?{" "}
-                <Link href="/quiz" className="text-zinc-300 underline hover:text-zinc-100">
+                <Link href="/quiz" className="text-ink-2 underline hover:text-cobalt">
                   Take the 3-minute quiz instead
                 </Link>
               </p>
@@ -232,18 +224,18 @@ export function UploadFlow({
           </>
         ) : stage === "uploading" ? (
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Uploading your reel…</h1>
-            <div className="mx-auto mt-6 h-2 w-full max-w-sm overflow-hidden rounded-full bg-zinc-800">
-              <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} />
+            <h1 className="display text-3xl">Uploading your reel…</h1>
+            <div className="mx-auto mt-6 h-2 w-full max-w-sm overflow-hidden rounded-full bg-track">
+              <div className="h-2 rounded-full bg-cobalt transition-all" style={{ width: `${progress}%` }} />
             </div>
-            <p className="mt-3 text-sm text-zinc-500">{progress}% — keep this tab open</p>
+            <p className="mt-3 text-sm text-soft">{progress}% — keep this tab open</p>
           </div>
         ) : (
           <div className="text-center">
-            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-zinc-700 border-t-emerald-500" />
-            <h1 className="mt-6 text-2xl font-bold">Analyzing your film…</h1>
-            <p className="mt-2 text-zinc-400">{ANALYZING_LINES[lineIdx]}</p>
-            <p className="mt-6 text-sm text-zinc-600">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-rule border-t-cobalt" />
+            <h1 className="display mt-6 text-3xl">Analyzing your film…</h1>
+            <p className="mt-2 text-soft">{ANALYZING_LINES[lineIdx]}</p>
+            <p className="mt-6 text-sm text-faint">
               This takes a minute or two. You&apos;ll land on your match automatically.
             </p>
           </div>

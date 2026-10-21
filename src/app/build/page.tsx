@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { type MetricVector, type PositionGroup } from "@/lib/metrics";
+import { SiteHeader } from "@/components/site-header";
 import { BuildEditor } from "@/components/build-editor";
 
 export const dynamic = "force-dynamic";
@@ -27,13 +27,8 @@ export default async function BuildPage() {
   if (!user?.profile || !user.assessments[0]?.metrics) redirect("/");
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      <header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-        <Link href="/dashboard" className="text-sm font-semibold text-zinc-300">
-          ← Your match
-        </Link>
-        <span className="text-sm text-zinc-500">⚽ Playstyle Finder</span>
-      </header>
+    <main className="min-h-screen text-ink">
+      <SiteHeader back={{ href: "/dashboard", label: "Your match" }} width="max-w-3xl" />
       <div className="mx-auto max-w-3xl px-6 pb-24">
         <BuildEditor
           position={user.profile.positionGroup as PositionGroup}
