@@ -50,13 +50,15 @@ export function validateBuild(v: unknown): BuildValidation {
 }
 
 /**
- * Position-weighted overall rating. A build that pours points into its
- * position's signature attributes rates higher than the same points spread
- * against type — exactly how 2K archetypes work.
+ * Position-weighted overall rating from the position's signature attributes
+ * only (weight > 1), like a 2K archetype: a winger is rated on dribbling and
+ * pace, not tackling. Maxing every signature attribute reaches 99, and the
+ * pro roster lands roughly 65–90.
  */
 export function buildOverall(v: MetricVector, position: PositionGroup): number {
   const w = POSITION_WEIGHTS[position];
-  const wSum = METRIC_KEYS.reduce((s, k) => s + w[k], 0);
-  const mean = METRIC_KEYS.reduce((s, k) => s + w[k] * v[k], 0) / wSum;
+  const keys = METRIC_KEYS.filter((k) => w[k] > 1);
+  const wSum = keys.reduce((s, k) => s + w[k], 0);
+  const mean = keys.reduce((s, k) => s + w[k] * v[k], 0) / wSum;
   return Math.round(mean);
 }

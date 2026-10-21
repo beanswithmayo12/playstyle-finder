@@ -19,10 +19,10 @@ export default function Home() {
       <SiteHeader />
       <main>
         {/* Hero: upload first */}
-        <section id="upload" className="mx-auto grid max-w-6xl scroll-mt-8 items-center gap-12 px-6 pb-20 pt-8 lg:grid-cols-[1fr_1.05fr] lg:pt-14">
+        <section id="upload" className="mx-auto grid max-w-6xl scroll-mt-8 items-center gap-12 px-6 pb-20 pt-8 lg:grid-cols-[1.15fr_1fr] lg:pt-14">
           <div>
             <p className="label">Free scouting report</p>
-            <h1 className="display mt-4 text-6xl sm:text-7xl">
+            <h1 className="display mt-4 text-5xl sm:text-6xl xl:text-7xl">
               Same game. <span className="text-cobalt">Different stage.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-soft">

@@ -71,4 +71,14 @@ describe("player build rules", () => {
     expect(buildOverall(wingerBuild, "W")).toBeGreaterThan(buildOverall(defenderBuild, "W"));
     expect(buildOverall(defenderBuild, "CB")).toBeGreaterThan(buildOverall(wingerBuild, "CB"));
   });
+
+  it("a budget-legal build can reach 99 OVR by maxing its signature attributes", () => {
+    // Winger signature: dribbling, explosiveness, progression, finishing, space.
+    const b = vec(BUILD_FLOOR);
+    for (const k of ["dribbleDensity", "explosiveness", "verticalProgression", "finishingInstinct", "spatialCreation"] as const) {
+      b[k] = 99;
+    }
+    expect(validateBuild(b).ok).toBe(true);
+    expect(buildOverall(b, "W")).toBe(99);
+  });
 });
