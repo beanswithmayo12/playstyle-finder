@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { METRIC_KEYS, type MetricVector, type PositionGroup } from "@/lib/metrics";
 import { buildOverall } from "@/lib/build";
+import { buildHeatMap } from "@/lib/heatmap";
 import { POSITION_OPTIONS } from "@/data/quiz";
 import { signatureMetrics } from "@/components/report";
 import { SiteHeader } from "@/components/site-header";
@@ -131,6 +132,7 @@ export default async function DashboardPage({
         proMetrics={proMetrics}
         headToHeadKeys={signatureMetrics(position)}
         explanation={match.explanation}
+        heat={buildHeatMap(position, user.profile?.preferredFoot ?? "RIGHT", athleteMetrics)}
         gaps={gaps}
         runnersUp={runnersUp}
         shareUrl={`${appUrl}/m/${match.id}`}

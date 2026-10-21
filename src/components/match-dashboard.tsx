@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { MetricKey, MetricVector } from "@/lib/metrics";
 import type { FilmMoment } from "@/lib/film-stats";
+import type { HeatMap } from "@/lib/heatmap";
 import { HeadToHead, Scoreboard } from "./report";
 import { KeyMoments } from "./key-moments";
+import { PitchHeatmap } from "./pitch-heatmap";
 
 export interface StudyClip {
   title: string;
@@ -34,7 +36,8 @@ export interface MatchDashboardProps {
   proMetrics: MetricVector;
   headToHeadKeys: MetricKey[];
   explanation: string;
-  gaps: { label: string; delta: number }[];
+  heat: HeatMap;
+  gaps:{ label: string; delta: number }[];
   runnersUp: { knownAs: string; matchPercent: number }[];
   shareUrl: string;
   film: { moments: FilmMoment[]; videoUrl: string | null; line: string } | null;
@@ -148,7 +151,7 @@ export function MatchDashboard(props: MatchDashboardProps) {
         )}
       </div>
 
-      {/* Scout's notes + study clips */}
+      {/* Scout's notes + where you play + study clips */}
       <div className="mt-5 grid items-start gap-5 lg:grid-cols-[1.1fr_1fr]">
         <section className="card p-5">
           <h2 className="label">Scout&apos;s notes</h2>
@@ -171,25 +174,28 @@ export function MatchDashboard(props: MatchDashboardProps) {
           )}
         </section>
 
-        <section className="card p-5">
-          <h2 className="label">Study {props.pro.knownAs}</h2>
-          <p className="mt-3 text-sm text-soft">{props.pro.styleSummary}</p>
-          <ul className="mt-4 divide-y divide-rule border-y border-rule">
-            {props.pro.studyClips.map((clip) => (
-              <li key={clip.title}>
-                <a
-                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(clip.youtubeQuery)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block py-3 transition hover:text-cobalt"
-                >
-                  <span className="font-semibold">▶ {clip.title}</span>
-                  <span className="mt-1 block text-sm text-soft">{clip.focusPoint}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <div className="grid gap-5">
+          <PitchHeatmap heat={props.heat} />
+          <section className="card p-5">
+            <h2 className="label">Study {props.pro.knownAs}</h2>
+            <p className="mt-3 text-sm text-soft">{props.pro.styleSummary}</p>
+            <ul className="mt-4 divide-y divide-rule border-y border-rule">
+              {props.pro.studyClips.map((clip) => (
+                <li key={clip.title}>
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(clip.youtubeQuery)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block py-3 transition hover:text-cobalt"
+                  >
+                    <span className="font-semibold">▶ {clip.title}</span>
+                    <span className="mt-1 block text-sm text-soft">{clip.focusPoint}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       </div>
 
       {/* Training: team practice (free) + on your own (program) */}
