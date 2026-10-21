@@ -35,6 +35,8 @@
   --film-accent: #8fb0ff;
   --film-good: #5fd18f;
   --film-bad: #ff7a6e;
+  --heat-pro: #e8590c; /* the pro's layer on the heat map */
+  --lift: #0f1d30; /* hard shadow under lifted cards and buttons */
   color-scheme: light;
 
   /* shadcn tokens (used by Clerk's themed components) mapped onto ours */
@@ -83,6 +85,8 @@
   --film-soft: #9fb3dc;
   --film-rule: #24407d;
   --film-accent: #9dbcff;
+  --heat-pro: #ff9a4d;
+  --lift: #5b8cff;
   color-scheme: dark;
 }
 
@@ -123,6 +127,8 @@
   --color-film-accent: var(--film-accent);
   --color-film-good: var(--film-good);
   --color-film-bad: var(--film-bad);
+  --color-heat-pro: var(--heat-pro);
+  --color-lift: var(--lift);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -192,6 +198,143 @@
   .offset-shadow {
     box-shadow: 0.4rem 0.4rem 0 var(--cobalt);
   }
+}
+
+/* ─────────────── Flair: switches live in src/lib/flair.ts ───────────────
+   CSS-only effects key off <html data-flair="…">; the rest are rendered (or
+   not) by their components. */
+
+/* 1 · Scoreboard kickoff: the match block stamps in. */
+:root[data-flair~="scoreboardKickoff"] .flair-stamp {
+  animation: flair-stamp 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.35) var(--stamp-delay, 0.85s) both;
+}
+@keyframes flair-stamp {
+  0% { transform: scale(1.6); opacity: 0; }
+  60% { transform: scale(0.94); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* 2 · Head-to-head bars race out from the middle. */
+:root[data-flair~="racingBars"] .flair-race {
+  animation: flair-race 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 250ms);
+}
+@keyframes flair-race {
+  from { transform: scaleX(0); }
+}
+
+/* 5 · Tendency moves draw themselves on the pitch. */
+.move-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: flair-draw 0.85s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 7 · Cards lift onto a hard shadow, buttons press down, arrows nudge. */
+.nudge {
+  display: inline-block;
+  transition: translate 0.2s ease;
+}
+.lift {
+  transition: translate 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+:root[data-flair~="cardFeel"] :is(.btn-primary, .btn-secondary):not(:disabled):hover {
+  translate: -2px -2px;
+  box-shadow: 4px 4px 0 var(--lift);
+}
+:root[data-flair~="cardFeel"] :is(.btn-primary, .btn-secondary):not(:disabled):active {
+  translate: 1px 1px;
+  box-shadow: none;
+}
+:root[data-flair~="cardFeel"] :is(a, button):hover .nudge {
+  translate: 4px 0;
+}
+:root[data-flair~="cardFeel"] .lift:hover {
+  translate: -3px -3px;
+  box-shadow: 6px 6px 0 var(--lift);
+  border-color: var(--rule-strong);
+}
+
+/* 8 · Floodlight theme switch: the circle itself is animated in theme-toggle.tsx. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 9, 12, 13 · Sign-up stage: scanning shimmer, pulsing step, pitch lines. */
+.flair-scan {
+  animation: flair-scan 2.2s linear infinite;
+}
+@keyframes flair-scan {
+  from { top: -40%; }
+  to { top: 100%; }
+}
+.flair-ring {
+  animation: flair-ring 1.8s ease-out infinite;
+}
+@keyframes flair-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--cobalt) 45%, transparent); }
+  100% { box-shadow: 0 0 0 10px transparent; }
+}
+.flair-draw path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: flair-draw 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 110ms + 150ms);
+}
+@keyframes flair-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* 11 · Sign-up and sign-in forms (Clerk) restyled to match the site. */
+:root[data-flair~="styledAuthForms"] .cl-cardBox {
+  border: 1.5px solid var(--rule-strong);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 var(--cobalt);
+}
+:root[data-flair~="styledAuthForms"] .cl-headerTitle {
+  font-stretch: 122%;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+:root[data-flair~="styledAuthForms"] .cl-formFieldLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+:root[data-flair~="styledAuthForms"] :is(.cl-socialButtonsBlockButton, .cl-formButtonPrimary) {
+  border-radius: 0;
+}
+/* A cobalt line sweeps under whichever field you're typing in. */
+:root[data-flair~="styledAuthForms"] :is(.cl-formFieldInput, .input) {
+  background-image: linear-gradient(var(--cobalt), var(--cobalt));
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 0% 2px;
+  transition: background-size 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s;
+}
+:root[data-flair~="styledAuthForms"] :is(.cl-formFieldInput, .input):focus {
+  background-size: 100% 2px;
+}
+
+/* 14 · Sign-in popup rises in over a blurred page. */
+:root[data-flair~="signInPopup"] .cl-modalBackdrop {
+  background: color-mix(in srgb, var(--paper) 55%, transparent);
+  backdrop-filter: blur(6px);
+  animation: flair-fade 0.25s ease both;
+}
+:root[data-flair~="signInPopup"] .cl-modalContent {
+  animation: flair-rise 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes flair-fade {
+  from { opacity: 0; }
+}
+@keyframes flair-rise {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
 }
 
 @media (prefers-reduced-motion: reduce) {

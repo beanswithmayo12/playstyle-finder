@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { METRIC_KEYS, type MetricVector, type PositionGroup } from "@/lib/metrics";
 import { buildOverall } from "@/lib/build";
 import { buildHeatMap } from "@/lib/heatmap";
+import { FLAIR } from "@/lib/flair";
+import { PRO_SIDES } from "@/data/pro-sides";
 import { POSITION_OPTIONS } from "@/data/quiz";
 import { signatureMetrics } from "@/components/report";
 import { SiteHeader } from "@/components/site-header";
@@ -133,6 +135,19 @@ export default async function DashboardPage({
         headToHeadKeys={signatureMetrics(position)}
         explanation={match.explanation}
         heat={buildHeatMap(position, user.profile?.preferredFoot ?? "RIGHT", athleteMetrics)}
+        proHeat={
+          FLAIR.proHeatMap
+            ? {
+                name: match.proPlayer.knownAs,
+                heat: buildHeatMap(
+                  match.proPlayer.positionGroup as PositionGroup,
+                  match.proPlayer.preferredFoot,
+                  proMetrics,
+                  PRO_SIDES[match.proPlayer.slug],
+                ),
+              }
+            : null
+        }
         gaps={gaps}
         runnersUp={runnersUp}
         shareUrl={`${appUrl}/m/${match.id}`}

@@ -12,6 +12,8 @@
 import type { MetricKey, MetricVector, PositionGroup } from "@/lib/metrics";
 
 export type Foot = "LEFT" | "RIGHT" | "BOTH";
+/** Which flank a wide player works; BOTH when it isn't known. */
+export type Side = "LEFT" | "RIGHT" | "BOTH";
 
 export interface PitchPoint {
   x: number;
@@ -19,12 +21,20 @@ export interface PitchPoint {
   weight: number;
 }
 
+export interface Tendency {
+  key: MetricKey;
+  text: string;
+  detail: string;
+}
+
 export interface HeatMap {
   /** rows × cols densities, 0–1, row 0 = left touchline, col 0 = own goal line */
   cells: number[][];
   /** e.g. "Central · final third" */
   zone: string;
-  tendencies: string[];
+  tendencies: Tendency[];
+  /** Flank the tendency moves are drawn on. */
+  moveSide: "left" | "right";
 }
 
 export const HEAT_COLS = 21; // 5 m columns on a 105 m pitch
@@ -55,34 +65,36 @@ export function densityGrid(points: PitchPoint[], sigmaMetres = 10): number[][] 
   return max > 0 ? cells.map((row) => row.map((v) => v / max)) : cells;
 }
 
-const TENDENCY: Record<MetricKey, string> = {
-  dribbleDensity: "Takes defenders on 1v1",
-  explosiveness: "Explodes into space with a quick first step",
-  verticalProgression: "Looks forward first, playing and carrying vertically",
-  finishingInstinct: "Gets into the box to finish",
-  spatialCreation: "Finds pockets between the lines",
-  passingRange: "Switches play with longer passes",
-  tempoControl: "Sets the tempo on the ball",
-  scanning: "Checks shoulders before receiving",
-  pressingIntensity: "Presses high to win it back",
-  defensivePositioning: "Holds shape and reads danger early",
-  duelAggression: "Goes looking for duels",
-  endurance: "Covers ground box to box",
+const TENDENCY: Record<MetricKey, [text: string, detail: string]> = {
+  dribbleDensity: ["Takes defenders on 1v1", "Goes at the defender instead of recycling the ball."],
+  explosiveness: ["Explodes into space with a quick first step", "Sprints in behind before the defender can react."],
+  verticalProgression: ["Looks forward first", "Plays and carries the ball toward goal early."],
+  finishingInstinct: ["Gets into the box to finish", "Arrives in scoring spots and takes the shot."],
+  spatialCreation: ["Finds pockets between the lines", "Drifts inside to receive where defenders can't reach."],
+  passingRange: ["Switches play with longer passes", "Moves the ball across the pitch in one pass."],
+  tempoControl: ["Sets the tempo on the ball", "Keeps it moving with quick, short combinations."],
+  scanning: ["Checks shoulders before receiving", "Knows the next move before the ball arrives."],
+  pressingIntensity: ["Presses high to win it back", "Sprints at the ball carrier the moment it's lost."],
+  defensivePositioning: ["Holds shape and reads danger early", "Gets back into position and cuts out passes."],
+  duelAggression: ["Goes looking for duels", "Steps in and contests every loose ball."],
+  endurance: ["Covers ground box to box", "Still running hard late in the game."],
 };
 
 /** Flank y for wide roles. */
-function flanks(position: PositionGroup, foot: Foot): number[] {
+function flanks(position: PositionGroup, foot: Foot, side?: Side): number[] {
+  if (side === "LEFT") return [10];
+  if (side === "RIGHT") return [90];
   // Fullbacks usually play on their strong-foot side. Wingers are as often
   // inverted as not, so we don't guess their side.
-  if (position === "FB" && foot !== "BOTH") return [foot === "LEFT" ? 10 : 90];
+  if (!side && position === "FB" && foot !== "BOTH") return [foot === "LEFT" ? 10 : 90];
   return [10, 90];
 }
 
 /** Primary area (weight 1) + supporting spots for each position. */
-function anchors(position: PositionGroup, foot: Foot): PitchPoint[] {
+function anchors(position: PositionGroup, foot: Foot, side?: Side): PitchPoint[] {
   const p = (x: number, y: number, weight: number): PitchPoint => ({ x, y, weight });
   const wide = (fn: (f: number, inward: number) => PitchPoint[]) =>
-    flanks(position, foot).flatMap((f) => fn(f, f < 50 ? 1 : -1));
+    flanks(position, foot, side).flatMap((f) => fn(f, f < 50 ? 1 : -1));
   switch (position) {
     case "GK":
       return [p(5, 50, 1), p(14, 50, 0.35)];
@@ -104,8 +116,8 @@ function anchors(position: PositionGroup, foot: Foot): PitchPoint[] {
 }
 
 /** Position anchors, shifted by what the metric profile says they do. */
-export function estimatedPoints(position: PositionGroup, foot: Foot, m: MetricVector): PitchPoint[] {
-  const base = anchors(position, foot);
+export function estimatedPoints(position: PositionGroup, foot: Foot, m: MetricVector, side?: Side): PitchPoint[] {
+  const base = anchors(position, foot, side);
   if (position === "GK") return base;
   const s = (k: MetricKey) => clamp((m[k] - 55) / 40, 0, 1); // 55 → 0, 95 → 1
   const extra: PitchPoint[] = [];
@@ -136,25 +148,67 @@ export function estimatedPoints(position: PositionGroup, foot: Foot, m: MetricVe
   return [...base, ...extra];
 }
 
-function zoneLabel(position: PositionGroup, foot: Foot): string {
+function zoneLabel(position: PositionGroup, foot: Foot, side?: Side): string {
   if (position === "GK") return "Own box";
   if (position === "W" || position === "FB") {
-    const side = flanks(position, foot);
-    const where = side.length > 1 ? "Wide" : side[0] < 50 ? "Left flank" : "Right flank";
+    const f = flanks(position, foot, side);
+    const where = f.length > 1 ? "Wide" : f[0] < 50 ? "Left flank" : "Right flank";
     return `${where} · ${position === "W" ? "final" : "middle"} third`;
   }
   const third = { CB: "defensive", DM: "middle", CM: "middle", AM: "final", ST: "final" }[position];
   return `Central · ${third} third`;
 }
 
-export function buildHeatMap(position: PositionGroup, foot: Foot, metrics: MetricVector): HeatMap {
+export function buildHeatMap(position: PositionGroup, foot: Foot, metrics: MetricVector, side?: Side): HeatMap {
+  const f = flanks(position, foot, side);
   return {
-    cells: densityGrid(estimatedPoints(position, foot, metrics)),
-    zone: zoneLabel(position, foot),
+    cells: densityGrid(estimatedPoints(position, foot, metrics, side)),
+    zone: zoneLabel(position, foot, side),
     // The athlete's three strongest traits, read as on-pitch habits.
     tendencies: (Object.keys(TENDENCY) as MetricKey[])
       .sort((a, b) => metrics[b] - metrics[a])
       .slice(0, 3)
-      .map((k) => TENDENCY[k]),
+      .map((k) => ({ key: k, text: TENDENCY[k][0], detail: TENDENCY[k][1] })),
+    moveSide: f.length === 1 && f[0] > 50 ? "right" : "left",
   };
+}
+
+// ───────────────────────── Zones and overlap ─────────────────────────
+
+const LANES = ["Left wing", "Left half-space", "Central", "Right half-space", "Right wing"];
+const THIRDS = ["defensive third", "middle third", "final third"];
+
+/** 15 zones: index = third × 5 + lane (lanes run left touchline → right). */
+export const ZONE_COUNT = 15;
+
+export function zoneName(zone: number): string {
+  return `${LANES[zone % 5]} · ${THIRDS[Math.floor(zone / 5)]}`;
+}
+
+/** Share of the map's total heat in each zone (sums to 1). */
+export function zoneShares(cells: number[][]): number[] {
+  const shares = new Array<number>(ZONE_COUNT).fill(0);
+  let total = 0;
+  cells.forEach((row, r) =>
+    row.forEach((v, c) => {
+      const third = Math.min(2, Math.floor((((c + 0.5) / HEAT_COLS) * 100) / (100 / 3)));
+      const lane = Math.min(4, Math.floor((((r + 0.5) / HEAT_ROWS) * 100) / 20));
+      shares[third * 5 + lane] += v;
+      total += v;
+    }),
+  );
+  return total > 0 ? shares.map((v) => v / total) : shares;
+}
+
+/** How much of the pro's ground the athlete also covers, 0–100. */
+export function heatOverlap(athlete: number[][], pro: number[][]): number {
+  let shared = 0;
+  let proTotal = 0;
+  athlete.forEach((row, r) =>
+    row.forEach((v, c) => {
+      shared += Math.min(v, pro[r][c]);
+      proTotal += pro[r][c];
+    }),
+  );
+  return proTotal > 0 ? Math.round((shared / proTotal) * 100) : 0;
 }

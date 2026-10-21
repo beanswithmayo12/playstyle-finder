@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { FLAIR, flairAttr } from "@/lib/flair";
 import { AnalyticsProvider } from "./providers";
 import "./globals.css";
 
@@ -27,18 +28,23 @@ export const metadata: Metadata = {
 // Light is the default; only an explicit saved choice switches it.
 const themeScript = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
 
+// Flair 14: the sign-in popup greets returning players.
+const localization = FLAIR.signInPopup
+  ? { signIn: { start: { title: "Welcome back", subtitle: "Sign in to see your report" } } }
+  : undefined;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-flair={flairAttr()} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className={`${archivo.variable} ${plexMono.variable} antialiased`}>
-        <ClerkProvider appearance={{ theme: shadcn }}>
+        <ClerkProvider appearance={{ theme: shadcn }} localization={localization}>
           <AnalyticsProvider>{children}</AnalyticsProvider>
         </ClerkProvider>
       </body>

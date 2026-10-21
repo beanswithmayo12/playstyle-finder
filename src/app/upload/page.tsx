@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
+import { PROS } from "@/data/pros";
 import { UploadFlow } from "@/components/upload-flow";
 
 export const dynamic = "force-dynamic";
@@ -16,5 +17,11 @@ export default async function UploadPage() {
     });
     initialPosition = user?.profile?.positionGroup ?? null;
   }
-  return <UploadFlow signedIn={!!userId} initialPosition={initialPosition} />;
+  return (
+    <UploadFlow
+      signedIn={!!userId}
+      initialPosition={initialPosition}
+      proNames={PROS.map((p) => p.knownAs)}
+    />
+  );
 }

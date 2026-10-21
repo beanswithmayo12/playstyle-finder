@@ -37,6 +37,7 @@ export interface MatchDashboardProps {
   headToHeadKeys: MetricKey[];
   explanation: string;
   heat: HeatMap;
+  proHeat: { name: string; heat: HeatMap } | null;
   gaps:{ label: string; delta: number }[];
   runnersUp: { knownAs: string; matchPercent: number }[];
   shareUrl: string;
@@ -93,6 +94,7 @@ export function MatchDashboard(props: MatchDashboardProps) {
           athlete={{ name: props.athleteName, sub: props.positionLabel, ovr: props.athleteOvr }}
           pro={{ name: props.pro.knownAs, sub: props.pro.archetype, ovr: props.proOvr }}
           matchPercent={props.matchPercent}
+          kickoffDelay={props.reveal ? 900 : 0}
         />
       </div>
 
@@ -104,7 +106,7 @@ export function MatchDashboard(props: MatchDashboardProps) {
 
       {/* Head to head + key moments */}
       <div className="mt-6 grid items-start gap-5 lg:grid-cols-[1.1fr_1fr]">
-        <section className="card p-5">
+        <section className="card lift p-5">
           <div className="mb-4 flex items-baseline justify-between">
             <h2 className="label">Head to head</h2>
             <span className="font-mono text-xs text-soft">out of 99</span>
@@ -127,7 +129,7 @@ export function MatchDashboard(props: MatchDashboardProps) {
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                 <span className="text-film-soft">{props.film.line}</span>
                 <Link href="/film" className="font-semibold text-film-accent hover:underline">
-                  Full breakdown →
+                  Full breakdown <span className="nudge">→</span>
                 </Link>
               </div>
             }
@@ -175,8 +177,8 @@ export function MatchDashboard(props: MatchDashboardProps) {
         </section>
 
         <div className="grid gap-5">
-          <PitchHeatmap heat={props.heat} />
-          <section className="card p-5">
+          <PitchHeatmap heat={props.heat} pro={props.proHeat} />
+          <section className="card lift p-5">
             <h2 className="label">Study {props.pro.knownAs}</h2>
             <p className="mt-3 text-sm text-soft">{props.pro.styleSummary}</p>
             <ul className="mt-4 divide-y divide-rule border-y border-rule">
@@ -232,21 +234,21 @@ export function MatchDashboard(props: MatchDashboardProps) {
             ))}
           </div>
           <Link href="/plans" className="btn-primary mt-5">
-            See the 8-week program →
+            See the 8-week program <span className="nudge">→</span>
           </Link>
         </section>
       </div>
 
       {/* Builder + recruiting */}
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <section className="card flex flex-col justify-between gap-4 p-5">
+        <section className="card lift flex flex-col justify-between gap-4 p-5">
           <div>
             <h2 className="label">Build your 99 OVR self</h2>
             <p className="mt-2 text-soft">Spend attribute points on the player you want to become, then see which pros play like your build.</p>
           </div>
-          <Link href="/build" className="btn-secondary self-start">Open the builder →</Link>
+          <Link href="/build" className="btn-secondary self-start">Open the builder <span className="nudge">→</span></Link>
         </section>
-        <section className="card flex flex-col justify-between gap-4 p-5">
+        <section className="card lift flex flex-col justify-between gap-4 p-5">
           <div>
             <h2 className="label">Recruiting profile</h2>
             <p className="mt-2 text-soft">
@@ -257,7 +259,7 @@ export function MatchDashboard(props: MatchDashboardProps) {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/profile" className="btn-secondary">
-              {props.recruiting ? "Edit profile" : "Build my profile →"}
+              {props.recruiting ? "Edit profile" : <>Build my profile <span className="nudge">→</span></>}
             </Link>
             {props.recruiting?.published && (
               <Link href={`/p/${props.recruiting.slug}`} className="text-sm font-semibold text-cobalt hover:underline">

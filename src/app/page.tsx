@@ -91,7 +91,7 @@ export default function Home() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a href="#upload" className="bg-film-accent px-7 py-3.5 font-semibold text-film transition hover:opacity-90">
-              Find my pro twin
+              Find my pro twin <span className="nudge">→</span>
             </a>
             <Link href="/quiz" className="border border-film-rule px-7 py-3.5 font-semibold text-film-ink transition hover:border-film-accent">
               Take the quiz
@@ -169,7 +169,7 @@ function ReportPreview() {
 
 function MomentsPreview() {
   return (
-    <div aria-hidden className="card p-5">
+    <div aria-hidden className="card lift p-5">
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[["1/2", "Take-ons made"], ["1/1", "Shots made"], ["0/1", "Key passes"], ["1", "Bursts"]].map(([v, l]) => (
           <div key={l} className="border border-rule p-3">
@@ -192,7 +192,7 @@ function BuildPreview() {
     ["Duels", 52],
   ];
   return (
-    <div aria-hidden className="card p-5">
+    <div aria-hidden className="card lift p-5">
       <div className="flex items-center justify-between">
         <p className="label">Your build</p>
         <div className="flex gap-2">

@@ -116,7 +116,7 @@ export default async function PlansPage() {
                   href={`/program/${featured.id}`}
                   className="rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
                 >
-                  Open your program →
+                  Open your program <span className="nudge">→</span>
                 </Link>
               ) : (
                 <BuyButton planId={featured.id} priceCents={featured.priceCents} />
@@ -152,7 +152,7 @@ export default async function PlansPage() {
                   <div className="mt-4">
                     {owned.has(plan.id) ? (
                       <Link href={`/program/${plan.id}`} className="text-sm font-semibold text-cobalt">
-                        Open program →
+                        Open program <span className="nudge">→</span>
                       </Link>
                     ) : (
                       <BuyButton planId={plan.id} priceCents={plan.priceCents} compact />

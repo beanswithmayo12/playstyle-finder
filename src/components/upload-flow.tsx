@@ -7,6 +7,7 @@ import { SignUp } from "@clerk/nextjs";
 import { POSITION_OPTIONS } from "@/data/quiz";
 import { clearPendingReel, loadPendingReel } from "@/lib/pending-reel";
 import { SiteHeader } from "@/components/site-header";
+import { SignUpStage } from "@/components/signup-stage";
 import { VideoDropzone, reelContentType } from "./video-dropzone";
 
 type Stage = "form" | "uploading" | "analyzing" | "error";
@@ -22,9 +23,12 @@ const ANALYZING_LINES = [
 export function UploadFlow({
   signedIn,
   initialPosition,
+  proNames,
 }: {
   signedIn: boolean;
   initialPosition: string | null;
+  /** Roster names for the locked report's shuffle on the sign-up step. */
+  proNames: string[];
 }) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("form");
@@ -123,23 +127,30 @@ export function UploadFlow({
     }
   }
 
+  if (!signedIn) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <SignUpStage
+          steps={["Film", "Account", "Your report"]}
+          current={1}
+          eyebrow="Highlight reel"
+          heading="Your film is ready to scout."
+          lede="Create your free account and we'll analyze your reel and reveal which professional player your game matches."
+          teaser={{ names: proNames, position: null, match: null }}
+        >
+          <SignUp routing="hash" forceRedirectUrl="/upload" signInForceRedirectUrl="/upload" />
+        </SignUpStage>
+      </div>
+    );
+  }
+
   return (
     <main className="flex min-h-screen flex-col text-ink">
       <SiteHeader width="max-w-xl" />
 
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 pb-16">
-        {!signedIn ? (
-          <div className="flex flex-col items-center gap-6 text-center">
-            <div>
-              <h1 className="display text-4xl">Your film is ready to scout.</h1>
-              <p className="mt-3 text-soft">
-                Create your free account and we&apos;ll analyze your reel and reveal
-                which professional player your game matches.
-              </p>
-            </div>
-            <SignUp routing="hash" forceRedirectUrl="/upload" signInForceRedirectUrl="/upload" />
-          </div>
-        ) : stage === "form" || stage === "error" ? (
+        {stage === "form" || stage === "error" ? (
           <>
             <h1 className="display text-4xl">Scout my film</h1>
             <p className="mt-3 text-soft">

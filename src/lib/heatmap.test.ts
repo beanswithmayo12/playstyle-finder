@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { METRIC_KEYS, type MetricVector } from "@/lib/metrics";
-import { buildHeatMap, densityGrid, estimatedPoints, HEAT_COLS, HEAT_ROWS } from "./heatmap";
+import {
+  buildHeatMap,
+  densityGrid,
+  estimatedPoints,
+  HEAT_COLS,
+  HEAT_ROWS,
+  heatOverlap,
+  zoneName,
+  zoneShares,
+} from "./heatmap";
 
 function vec(n: number): MetricVector {
   return Object.fromEntries(METRIC_KEYS.map((k) => [k, n])) as MetricVector;
@@ -63,10 +72,34 @@ describe("buildHeatMap", () => {
 
   it("lists the three strongest traits as tendencies", () => {
     const m = { ...vec(40), dribbleDensity: 90, explosiveness: 85, finishingInstinct: 80 };
-    expect(buildHeatMap("W", "RIGHT", m).tendencies).toEqual([
-      "Takes defenders on 1v1",
-      "Explodes into space with a quick first step",
-      "Gets into the box to finish",
+    expect(buildHeatMap("W", "RIGHT", m).tendencies.map((t) => t.key)).toEqual([
+      "dribbleDensity",
+      "explosiveness",
+      "finishingInstinct",
     ]);
+    expect(buildHeatMap("W", "RIGHT", m).tendencies[0].text).toBe("Takes defenders on 1v1");
+  });
+
+  it("a known side pins a wide player to that flank", () => {
+    const right = buildHeatMap("W", "RIGHT", vec(60), "RIGHT");
+    expect(centroid(right.cells).y).toBeGreaterThan(65);
+    expect(right.zone).toBe("Right flank · final third");
+    expect(right.moveSide).toBe("right");
+  });
+});
+
+describe("zones and overlap", () => {
+  it("zone shares sum to 1 and find where a player lives", () => {
+    const shares = zoneShares(buildHeatMap("W", "RIGHT", vec(60), "LEFT").cells);
+    expect(shares.reduce((a, b) => a + b, 0)).toBeCloseTo(1);
+    const top = shares.indexOf(Math.max(...shares));
+    expect(zoneName(top)).toBe("Left wing · final third");
+  });
+
+  it("overlap is 100 with yourself and low for opposite ends of the pitch", () => {
+    const st = buildHeatMap("ST", "RIGHT", vec(60)).cells;
+    const cb = buildHeatMap("CB", "RIGHT", vec(60)).cells;
+    expect(heatOverlap(st, st)).toBe(100);
+    expect(heatOverlap(st, cb)).toBeLessThan(40);
   });
 });
