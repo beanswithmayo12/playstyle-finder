@@ -5,7 +5,7 @@ each step, why, and the commit that made it happen. I built it with Claude
 Code as a pair programmer. The calls about what to build, what to cut and
 how it should feel were mine, and this log is a record of them.
 
-**July 28 – October 23, 2026 · 27 commits on `claude/soccer-playstyle-matching-saas-mplk26`**
+**July 28 – October 23, 2026 · 30 commits on `claude/soccer-playstyle-matching-saas-mplk26`**
 
 ## At a glance
 
@@ -22,6 +22,7 @@ how it should feel were mine, and this log is a record of them.
 | Oct 21 | "Where you play" heat map | [a9ab1bd] |
 | Oct 21 | Motion and interaction, previewed before building | [fdb1b7c] |
 | Oct 23 | Hover pop and dashboard tabs | [4923d59] [563ad2f] |
+| Oct 23 | A roadmap for going live with real data | [d347122] |
 
 ---
 
@@ -180,6 +181,19 @@ that stays pinned while scrolling: Overview, Scout report, Where you play,
 Training and Build & profile. The Training tab shows the player's biggest gap
 right on it. ([563ad2f])
 
+## 14. A roadmap for going live with real data · Oct 23
+
+With the product looking and feeling the way I want, the next question was
+how to make it actually *work*: real AI, real data, no fake info. I asked for
+a roadmap to get there. It starts with an honest list of everything that's
+demo or placeholder today (AI output, film events, the heat map, pro ratings,
+payments, storage), then lays out phases: turn on the real AI, prove the film
+analysis is accurate with a hand-labeled test set of real reels, replace the
+hand-typed pro ratings with real stats, launch, and test with beta players.
+It also lists the decisions that are mine to make, like which AI model to
+use, the pro data source, and the age policy. ([d347122],
+`docs/09-going-live-roadmap.md`)
+
 ---
 
 ## Patterns in how I worked
@@ -192,9 +206,13 @@ right on it. ([563ad2f])
 
 ## What's next
 
-- Heat maps built from real film, once the AI tags where on the pitch each action happens
-- A phone layout
-- A real AI key and cloud storage, when the site goes live
+The full plan is in [09-going-live-roadmap.md](09-going-live-roadmap.md). In short:
+
+- Turn on the real AI and check 20 quiz reports by hand
+- Build a labeled test set of real reels and measure film accuracy
+- Heat maps built from real film
+- Pro ratings from real match stats, and a coach review of the programs
+- A phone layout, legal basics, and launch
 - A custom model trained on real user film, once there's enough of it
 - A `main` branch with pull requests, for when there's a team or a deploy
 
@@ -225,3 +243,4 @@ right on it. ([563ad2f])
 [fdb1b7c]: https://github.com/beanswithmayo12/playstyle-finder/commit/fdb1b7c
 [4923d59]: https://github.com/beanswithmayo12/playstyle-finder/commit/4923d59
 [563ad2f]: https://github.com/beanswithmayo12/playstyle-finder/commit/563ad2f
+[d347122]: https://github.com/beanswithmayo12/playstyle-finder/commit/d347122
