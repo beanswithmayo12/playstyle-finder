@@ -26,6 +26,8 @@ Free Analysis  →  "You match Kevin De Bruyne"  →  Study Dashboard  →  Paid
 | [docs/04-ai-prompts.md](docs/04-ai-prompts.md) | Exact system prompts for questionnaire parsing, video analysis, and match explanations |
 | [docs/05-monetization-ux.md](docs/05-monetization-ux.md) | Conversion funnel, pricing, checkout page wireframe |
 | [docs/06-roadmap.md](docs/06-roadmap.md) | Step-by-step development phases (MVP → scale) |
+| [docs/07-stripe-integration.md](docs/07-stripe-integration.md) | Stripe Payments + Billing setup |
+| [docs/08-build-journal.md](docs/08-build-journal.md) | Build journal: every change, in order, and the thinking behind it |
 
 ## Starter Code
 
