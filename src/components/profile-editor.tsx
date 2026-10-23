@@ -172,14 +172,14 @@ export function ProfileEditor({
         <button
           onClick={() => save(true)}
           disabled={saving || !hasAnalysis}
-          className="rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
+          className="pop rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
         >
           {p.published ? "Save & keep public" : "Publish profile"}
         </button>
         <button
           onClick={() => save(false)}
           disabled={saving}
-          className="rounded-lg border border-rule px-6 py-3 font-semibold text-ink-2 transition hover:border-cobalt disabled:opacity-40"
+          className="pop rounded-lg border border-rule px-6 py-3 font-semibold text-ink-2 transition hover:border-cobalt disabled:opacity-40"
         >
           {p.published ? "Make private" : "Save as private"}
         </button>
@@ -199,7 +199,7 @@ export function ProfileEditor({
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className="shrink-0 rounded-lg border border-rule px-4 py-2 text-sm font-semibold transition hover:border-cobalt"
+            className="pop shrink-0 rounded-lg border border-rule px-4 py-2 text-sm font-semibold transition hover:border-cobalt"
           >
             {copied ? "Copied ✓" : "Copy link"}
           </button>

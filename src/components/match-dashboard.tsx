@@ -145,7 +145,7 @@ export function MatchDashboard(props: MatchDashboardProps) {
               </p>
             </div>
             {!props.filmProcessing && (
-              <Link href="/upload" className="self-start bg-film-accent px-5 py-3 font-semibold text-film transition hover:opacity-90">
+              <Link href="/upload" className="pop self-start bg-film-accent px-5 py-3 font-semibold text-film transition hover:opacity-90">
                 Upload highlights
               </Link>
             )}

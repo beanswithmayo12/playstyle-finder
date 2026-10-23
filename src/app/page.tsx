@@ -90,10 +90,10 @@ export default function Home() {
             Upload your film or take the 3-minute quiz. Your report is free.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <a href="#upload" className="bg-film-accent px-7 py-3.5 font-semibold text-film transition hover:opacity-90">
+            <a href="#upload" className="pop bg-film-accent px-7 py-3.5 font-semibold text-film transition hover:opacity-90">
               Find my pro twin <span className="nudge">→</span>
             </a>
-            <Link href="/quiz" className="border border-film-rule px-7 py-3.5 font-semibold text-film-ink transition hover:border-film-accent">
+            <Link href="/quiz" className="pop border border-film-rule px-7 py-3.5 font-semibold text-film-ink transition hover:border-film-accent">
               Take the quiz
             </Link>
           </div>
@@ -144,7 +144,7 @@ function SampleMoments() {
 /** Illustrative product preview (sample data). */
 function ReportPreview() {
   return (
-    <div aria-hidden className="card grid rotate-[1.5deg] gap-4 p-5 shadow-[0_24px_48px_rgba(15,29,48,0.14)]">
+    <div aria-hidden className="card pop grid rotate-[1.5deg] gap-4 p-5 transition [--pop-scale:1.02] shadow-[0_24px_48px_rgba(15,29,48,0.14)]">
       <div className="flex items-baseline justify-between font-mono text-xs text-soft">
         <span>PLAYER REPORT · SAMPLE</span>
         <span>film-verified</span>

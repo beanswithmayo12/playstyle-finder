@@ -39,7 +39,7 @@ export default async function FilmPage({
             <p className="text-ink-2">You haven&apos;t had any film analyzed yet.</p>
             <Link
               href="/upload"
-              className="mt-5 inline-block rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
+              className="pop mt-5 inline-block rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
             >
               Upload a highlight reel
             </Link>

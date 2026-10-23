@@ -126,7 +126,7 @@ export function BuildEditor({
         <button
           onClick={save}
           disabled={saving}
-          className="rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-50"
+          className="pop rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-50"
         >
           {saving ? "Matching your build…" : "Lock in build → find my pro comps"}
         </button>
@@ -172,7 +172,7 @@ export function BuildEditor({
               </p>
               <Link
                 href="/plans"
-                className="mt-4 inline-block rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
+                className="pop mt-4 inline-block rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
               >
                 Close the gap →
               </Link>

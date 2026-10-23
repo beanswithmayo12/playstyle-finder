@@ -132,7 +132,7 @@ export function ProgramView({
             <button
               key={w}
               onClick={() => setWeek(w)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              className={`pop rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 w === week
                   ? "bg-cobalt text-on-cobalt"
                   : wDone

@@ -236,7 +236,7 @@
   transition: translate 0.2s ease;
 }
 .lift {
-  transition: translate 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition: translate 0.18s ease, scale 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 :root[data-flair~="cardFeel"] :is(.btn-primary, .btn-secondary):not(:disabled):hover {
   translate: -2px -2px;
@@ -253,6 +253,18 @@
   translate: -3px -3px;
   box-shadow: 6px 6px 0 var(--lift);
   border-color: var(--rule-strong);
+}
+
+/* 15 · Hover pop: cards and buttons come a little closer. Buttons and other
+   `.pop` elements scale by --pop-scale (wide ones set it lower); cards less. */
+:root[data-flair~="hoverPop"] :is(.pop, .btn-primary, .btn-secondary):not(:disabled):hover {
+  scale: var(--pop-scale, 1.03);
+}
+:root[data-flair~="hoverPop"] :is(.pop, .btn-primary, .btn-secondary):not(:disabled):active {
+  scale: 0.98;
+}
+:root[data-flair~="hoverPop"] .lift:hover {
+  scale: 1.015;
 }
 
 /* 8 · Floodlight theme switch: the circle itself is animated in theme-toggle.tsx. */

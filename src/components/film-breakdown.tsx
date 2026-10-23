@@ -16,7 +16,7 @@ export function FilmBreakdown({
       {stats.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {stats.map((s) => (
-            <div key={s.type} className="card p-4">
+            <div key={s.type} className="card lift p-4">
               <p className="font-mono text-2xl font-semibold tabular-nums">
                 {s.made !== null ? (
                   <>

@@ -119,7 +119,7 @@ export default async function PlayerProfilePage({
             {profile.contactEmail && (
               <a
                 href={`mailto:${profile.contactEmail}`}
-                className="mt-6 inline-block rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
+                className="pop mt-6 inline-block rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
               >
                 Contact
               </a>

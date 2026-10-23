@@ -62,7 +62,7 @@ export function VideoDropzone({ onFile }: { onFile: (file: File) => void }) {
           setDragging(false);
           accept(e.dataTransfer.files[0]);
         }}
-        className={`offset-shadow flex cursor-pointer flex-wrap items-center justify-between gap-4 border-[1.5px] px-5 py-5 transition ${
+        className={`pop offset-shadow flex cursor-pointer flex-wrap items-center justify-between gap-4 border-[1.5px] px-5 py-5 transition [--pop-scale:1.015] ${
           dragging ? "border-cobalt bg-cobalt/5" : "border-rule-strong bg-surface hover:bg-cobalt/5"
         }`}
       >

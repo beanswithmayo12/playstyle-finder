@@ -114,7 +114,7 @@ export default async function PlansPage() {
               {owned.has(featured.id) ? (
                 <Link
                   href={`/program/${featured.id}`}
-                  className="rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
+                  className="pop rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
                 >
                   Open your program <span className="nudge">→</span>
                 </Link>
@@ -145,7 +145,7 @@ export default async function PlansPage() {
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {rest.map((plan) => (
-                <div key={plan.id} className="flex flex-col rounded-xl border border-rule bg-surface p-5">
+                <div key={plan.id} className="lift flex flex-col rounded-xl border border-rule bg-surface p-5">
                   <p className="text-sm text-soft">{plan.proPlayer.knownAs}</p>
                   <h3 className="mt-1 font-bold">{plan.title}</h3>
                   <p className="mt-2 flex-1 text-sm text-soft">{plan.description}</p>

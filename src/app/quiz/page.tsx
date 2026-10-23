@@ -117,7 +117,7 @@ export default function QuizPage() {
             <button
               onClick={() => textDraft.trim().length >= 10 && answerTactical(textDraft.trim())}
               disabled={textDraft.trim().length < 10}
-              className="self-end rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
+              className="pop self-end rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
             >
               {screen + 1 === TOTAL_SCREENS ? "Get my analysis" : "Continue"}
             </button>
@@ -128,7 +128,7 @@ export default function QuizPage() {
               <button
                 key={label}
                 onClick={() => selectOption(label)}
-                className="rounded-lg border border-rule bg-surface px-5 py-4 text-left text-ink transition hover:border-cobalt hover:bg-cobalt/5"
+                className="pop rounded-lg border border-rule bg-surface px-5 py-4 text-left [--pop-scale:1.015] text-ink transition hover:border-cobalt hover:bg-cobalt/5"
               >
                 {label}
               </button>

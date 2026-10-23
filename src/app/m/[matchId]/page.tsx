@@ -65,7 +65,7 @@ export default async function SharePage({
           <p className="text-soft">Which pro does YOUR game match?</p>
           <Link
             href="/quiz"
-            className="rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
+            className="pop rounded-lg bg-cobalt px-8 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover"
           >
             Find my match — free
           </Link>

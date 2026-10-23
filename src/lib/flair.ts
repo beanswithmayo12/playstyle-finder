@@ -33,6 +33,8 @@ export const FLAIR = {
   pitchLines: true,
   /** 14 · "Welcome back" sign-in popup that rises in over a blurred page. */
   signInPopup: true,
+  /** 15 · Cards and buttons scale up slightly on hover, as if coming closer. */
+  hoverPop: true,
 } as const;
 
 /**

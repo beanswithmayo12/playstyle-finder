@@ -221,7 +221,7 @@ export function UploadFlow({
               <button
                 onClick={start}
                 disabled={!ready}
-                className="w-full rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
+                className="pop w-full rounded-lg bg-cobalt px-6 py-3 font-semibold text-on-cobalt transition hover:bg-cobalt-hover disabled:opacity-40"
               >
                 Upload &amp; analyze my film
               </button>

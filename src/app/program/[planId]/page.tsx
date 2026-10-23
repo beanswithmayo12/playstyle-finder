@@ -43,7 +43,7 @@ export default async function ProgramPage({
         <p className="mt-2 text-soft">This usually takes a few seconds.</p>
         <a
           href={`/program/${plan.id}?purchase=success`}
-          className="mt-6 rounded-lg border border-rule px-6 py-3 text-sm font-medium text-ink-2 transition hover:border-cobalt"
+          className="pop mt-6 rounded-lg border border-rule px-6 py-3 text-sm font-medium text-ink-2 transition hover:border-cobalt"
         >
           Refresh
         </a>
