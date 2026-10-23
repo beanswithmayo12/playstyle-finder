@@ -28,6 +28,7 @@ Free Analysis  →  "You match Kevin De Bruyne"  →  Study Dashboard  →  Paid
 | [docs/06-roadmap.md](docs/06-roadmap.md) | Step-by-step development phases (MVP → scale) |
 | [docs/07-stripe-integration.md](docs/07-stripe-integration.md) | Stripe Payments + Billing setup |
 | [docs/08-build-journal.md](docs/08-build-journal.md) | Build journal: every change, in order, and the thinking behind it |
+| [docs/09-going-live-roadmap.md](docs/09-going-live-roadmap.md) | Going live: replacing every demo and placeholder piece with the real thing, then launching |
 
 ## Starter Code
 
