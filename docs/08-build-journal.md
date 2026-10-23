@@ -5,7 +5,7 @@ each step, why, and the commit that made it happen. I built it with Claude
 Code as a pair programmer. The calls about what to build, what to cut and
 how it should feel were mine, and this log is a record of them.
 
-**July 28 – October 23, 2026 · 30 commits on `claude/soccer-playstyle-matching-saas-mplk26`**
+**July 28 – October 23, 2026 · 33 commits on `claude/soccer-playstyle-matching-saas-mplk26`**
 
 ## At a glance
 
@@ -23,6 +23,7 @@ how it should feel were mine, and this log is a record of them.
 | Oct 21 | Motion and interaction, previewed before building | [fdb1b7c] |
 | Oct 23 | Hover pop and dashboard tabs | [4923d59] [563ad2f] |
 | Oct 23 | A roadmap for going live with real data | [d347122] |
+| Oct 23 | Getting the real AI ready | [54675d0] |
 
 ---
 
@@ -194,6 +195,16 @@ It also lists the decisions that are mine to make, like which AI model to
 use, the pro data source, and the age policy. ([d347122],
 `docs/09-going-live-roadmap.md`)
 
+## 15. Getting the real AI ready · Oct 23
+
+I considered turning this into a phone app, but decided against it for now: I
+want the app actually working first, with real AI instead of demo output. So
+we started Phase 1 of the roadmap with the code side: the AI model is set in
+one place so I can switch models with one line, every AI call prints what it
+cost so I'll know the real price of a quiz and a reel, setup mistakes (no
+key, wrong key, wrong model) show plain-English errors, and
+`npm run ai:check` confirms my key works before I test the site. ([54675d0])
+
 ---
 
 ## Patterns in how I worked
@@ -244,3 +255,4 @@ The full plan is in [09-going-live-roadmap.md](09-going-live-roadmap.md). In sho
 [4923d59]: https://github.com/beanswithmayo12/playstyle-finder/commit/4923d59
 [563ad2f]: https://github.com/beanswithmayo12/playstyle-finder/commit/563ad2f
 [d347122]: https://github.com/beanswithmayo12/playstyle-finder/commit/d347122
+[54675d0]: https://github.com/beanswithmayo12/playstyle-finder/commit/54675d0
