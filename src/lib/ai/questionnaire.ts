@@ -1,13 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { METRIC_KEYS, type MetricConfidence, type MetricVector } from "@/lib/metrics";
 import { QUESTIONNAIRE_ANALYST_SYSTEM } from "@/lib/prompts";
+import { createMessage } from "./client";
 import { isMockAI, mockQuestionnaireAnalysis } from "./mock";
-
-// Lazy so mock mode never needs an API key in the environment.
-let _anthropic: Anthropic | null = null;
-function anthropicClient(): Anthropic {
-  return (_anthropic ??= new Anthropic());
-}
 
 const metricProperties = Object.fromEntries(
   METRIC_KEYS.map((k) => [k, { type: "integer", minimum: 0, maximum: 100 }]),
@@ -50,8 +45,7 @@ export interface QuestionnaireAnalysis {
 export async function analyzeQuestionnaire(rawAnswers: unknown): Promise<QuestionnaireAnalysis> {
   if (isMockAI()) return mockQuestionnaireAnalysis(rawAnswers);
 
-  const res = await anthropicClient().messages.create({
-    model: "claude-sonnet-5",
+  const res = await createMessage("quiz scoring", {
     max_tokens: 2000,
     system: QUESTIONNAIRE_ANALYST_SYSTEM,
     tools: [submitMetricsTool],

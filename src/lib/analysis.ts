@@ -8,14 +8,9 @@ import { prisma } from "@/lib/db";
 import { METRIC_KEYS, type MetricConfidence, type MetricVector, type PositionGroup } from "@/lib/metrics";
 import { displayMatchPercent, rankMatches, type ProCandidate } from "@/lib/matching";
 import { MATCH_EXPLAINER_SYSTEM } from "@/lib/prompts";
+import { createMessage } from "@/lib/ai/client";
 import { isMockAI, mockExplanation } from "@/lib/ai/mock";
 import { METRIC_LABELS } from "@/components/metric-labels";
-
-// Lazy so mock mode never needs an API key in the environment.
-let _anthropic: Anthropic | null = null;
-function anthropicClient(): Anthropic {
-  return (_anthropic ??= new Anthropic());
-}
 
 export interface MatchOutcome {
   assessmentId: string;
@@ -66,8 +61,7 @@ export async function completeAssessment(args: {
       topGaps,
     });
   } else {
-    const explanation = await anthropicClient().messages.create({
-      model: "claude-sonnet-5",
+    const explanation = await createMessage("match explanation", {
       max_tokens: 1200,
       system: MATCH_EXPLAINER_SYSTEM,
       messages: [

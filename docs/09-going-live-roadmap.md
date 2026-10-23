@@ -33,16 +33,16 @@ the sign-up screen and the homepage sample report are labeled as samples.
    bug can never run up a bill.
 2. **Turn off demo mode:** put the key in `.env` as `ANTHROPIC_API_KEY` and
    remove `MOCK_AI`.
-3. **Put the model name in one place.** It's typed out in 5 files right now
-   (`claude-sonnet-5`); move it to a single setting so switching models is a
-   one-line change.
+3. ✅ **Put the model name in one place.** Done: `src/lib/ai/client.ts`, and
+   `ANTHROPIC_MODEL` in `.env` switches models without touching code. Check
+   your key with `npm run ai:check`.
 4. **Run the quiz 15–20 times** with deliberately different answers (a
    dribbler, a holding midfielder, a target striker, a goalkeeper). Check:
    do the ratings fit the answers? Do the matches make sense? Does the
    explanation read like a scout wrote it?
-5. **Log what each call costs.** The API reports tokens used on every
-   response; record them so we know the real cost per quiz and per reel
-   instead of guessing.
+5. ✅ **Log what each call costs.** Done: every AI call prints a line like
+   `[ai] quiz scoring · claude-sonnet-5 · 2140 in / 610 out · ≈$0.0104` in
+   the `npm run dev` terminal. Add those up per quiz and per reel.
 
 **Which AI model?** This is your call. The options at today's prices (per
 million tokens, input / output):

@@ -2,13 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { METRIC_KEYS, type MetricConfidence, type MetricVector } from "@/lib/metrics";
 import { VIDEO_AGGREGATOR_SYSTEM, VIDEO_FRAME_ANALYST_SYSTEM } from "@/lib/prompts";
 import { submitMetricsTool, type QuestionnaireAnalysis } from "./questionnaire";
+import { createMessage } from "./client";
 import { isMockAI, mockQuestionnaireAnalysis } from "./mock";
-
-// Lazy so mock mode never needs an API key in the environment.
-let _anthropic: Anthropic | null = null;
-function anthropicClient(): Anthropic {
-  return (_anthropic ??= new Anthropic());
-}
 
 export interface VideoEvent {
   type: string;
@@ -84,8 +79,7 @@ export async function analyzeFrameBatch(
     },
   ]);
 
-  const res = await anthropicClient().messages.create({
-    model: "claude-sonnet-5",
+  const res = await createMessage(`film frames ${frames[0]?.timestampSec ?? 0}s+`, {
     max_tokens: 3000,
     system,
     tools: [submitEventsTool],
@@ -107,8 +101,7 @@ export async function aggregateEvents(
 ): Promise<QuestionnaireAnalysis> {
   if (isMockAI()) return mockQuestionnaireAnalysis({ position, events });
 
-  const res = await anthropicClient().messages.create({
-    model: "claude-sonnet-5",
+  const res = await createMessage("film scoring", {
     max_tokens: 2000,
     system: VIDEO_AGGREGATOR_SYSTEM,
     tools: [submitMetricsTool],

@@ -13,6 +13,7 @@ import { prisma } from "@/lib/db";
 import { ensureUser } from "@/lib/users";
 import { isCompleteVector, type PositionGroup } from "@/lib/metrics";
 import { PROMPT_VERSION } from "@/lib/prompts";
+import { AI_MODEL } from "@/lib/ai/client";
 import { analyzeQuestionnaire } from "@/lib/ai/questionnaire";
 import { completeAssessment } from "@/lib/analysis";
 import type { QuizAnswers } from "@/data/quiz";
@@ -84,7 +85,7 @@ async function handleAnalyze(req: NextRequest) {
       inputType: "QUESTIONNAIRE",
       status: "PROCESSING",
       rawAnswers: body as never,
-      modelInfo: { model: "claude-sonnet-5", promptVersion: PROMPT_VERSION },
+      modelInfo: { model: AI_MODEL, promptVersion: PROMPT_VERSION },
     },
   });
 

@@ -13,6 +13,7 @@
     "db:studio": "prisma studio",
     "test": "vitest run",
     "tune:matcher": "tsx scripts/tune-matcher.ts",
+    "ai:check": "tsx scripts/ai-check.ts",
     "db:sync": "prisma db push && prisma generate && prisma db seed"
   },
   "dependencies": {
